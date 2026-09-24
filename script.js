@@ -29,8 +29,8 @@ const logoutBtn = document.getElementById("logoutBtn");
 // Estas credenciais são apenas para testar o protótipo.
 // Não são um sistema de autenticação seguro.
 
-const DEMO_EMAIL = "admin@interturmas.com";
-const DEMO_PASSWORD = "admin123";
+const DEMO_EMAIL = "listaM@adm.com";
+const DEMO_PASSWORD = "ListaM";
 
 
 // ========================================
