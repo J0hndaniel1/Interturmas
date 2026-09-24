@@ -1,1456 +1,972 @@
-/* =====================================================
-   DADOS
-===================================================== */
+// ========================================
+// DADOS
+// ========================================
 
 const teams = JSON.parse(localStorage.getItem("teams")) || [];
-
 const players = JSON.parse(localStorage.getItem("players")) || [];
-
 const games = JSON.parse(localStorage.getItem("games")) || [];
-
-const scorers = JSON.parse(localStorage.getItem("scorers")) || [];
-
-const standings = JSON.parse(localStorage.getItem("standings")) || [];
+const championships = JSON.parse(localStorage.getItem("championships")) || [];
 
 
-/* =====================================================
-   ELEMENTOS
-===================================================== */
+// ========================================
+// ELEMENTOS
+// ========================================
 
-const navLinks = document.querySelectorAll(".nav-link");
-const pages = document.querySelectorAll(".page");
-const nav = document.getElementById("nav");
+const loginPage = document.getElementById("loginPage");
+const adminPanel = document.getElementById("adminPanel");
 
+const loginForm = document.getElementById("loginForm");
+const loginMessage = document.getElementById("loginMessage");
 
-/* =====================================================
-   NAVEGAÇÃO
-===================================================== */
-
-function showPage(pageId) {
-
-  pages.forEach(page => {
-
-    page.classList.toggle(
-      "active",
-      page.id === pageId
-    );
-
-  });
+const logoutBtn = document.getElementById("logoutBtn");
 
 
-  navLinks.forEach(link => {
+// ========================================
+// LOGIN DEMONSTRATIVO
+// ========================================
 
-    link.classList.toggle(
-      "active",
-      link.dataset.page === pageId
-    );
+// IMPORTANTE:
+// Estas credenciais são apenas para testar o protótipo.
+// Não são um sistema de autenticação seguro.
 
-  });
-
-
-  nav.classList.remove("open");
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-
-}
+const DEMO_EMAIL = "admin@interturmas.com";
+const DEMO_PASSWORD = "admin123";
 
 
-navLinks.forEach(link => {
+// ========================================
+// INICIAR SESSÃO
+// ========================================
 
-  link.addEventListener("click", () => {
+loginForm.addEventListener("submit", function (event) {
 
-    showPage(link.dataset.page);
+    event.preventDefault();
 
-  });
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+
+        sessionStorage.setItem("adminLoggedIn", "true");
+
+        showAdminPanel();
+
+    } else {
+
+        loginMessage.textContent = "E-mail ou palavra-passe incorretos.";
+
+    }
 
 });
 
 
-document.querySelectorAll("[data-go]").forEach(button => {
+// ========================================
+// MOSTRAR PAINEL
+// ========================================
 
-  button.addEventListener("click", () => {
+function showAdminPanel() {
 
-    showPage(button.dataset.go);
+    loginPage.classList.add("hidden");
+    adminPanel.classList.remove("hidden");
 
-  });
+    renderAll();
+
+}
+
+
+// ========================================
+// TERMINAR SESSÃO
+// ========================================
+
+logoutBtn.addEventListener("click", function () {
+
+    sessionStorage.removeItem("adminLoggedIn");
+
+    adminPanel.classList.add("hidden");
+    loginPage.classList.remove("hidden");
+
+    loginForm.reset();
 
 });
 
 
-document.getElementById("menuBtn")
-  .addEventListener("click", () => {
+// ========================================
+// VERIFICAR SESSÃO
+// ========================================
 
-    nav.classList.toggle("open");
+if (sessionStorage.getItem("adminLoggedIn") === "true") {
 
-  });
-
-
-/* =====================================================
-   FILTRO DE PALAVRÕES
-===================================================== */
-
-/*
-   Esta lista é uma base.
-   Podemos aumentar posteriormente.
-*/
-
-const blockedWords = [
-
-  /* Português */
-  "caralho",
-  "merda",
-  "puta",
-  "puto",
-  "foda",
-  "foder",
-  "fodase",
-  "fudase",
-  "porra",
-  "cu",
-  "cona",
-  "paneleiro",
-  "filhodaputa",
-
-  /* Inglês */
-  "fuck",
-  "fucking",
-  "shit",
-  "bitch",
-  "asshole",
-  "dick",
-  "pussy",
-  "cunt",
-
-  /* Espanhol */
-  "puta",
-  "puto",
-  "mierda",
-  "joder",
-  "coño",
-  "cabron",
-
-  /* Francês */
-  "merde",
-  "putain",
-  "connard",
-
-  /* Italiano */
-  "cazzo",
-  "merda",
-  "stronzo",
-
-  /* Alemão */
-  "scheisse",
-  "arschloch",
-  "fick",
-
-  /* Outras formas comuns */
-  "fuckyou",
-  "motherfucker"
-
-];
-
-
-/* =====================================================
-   NORMALIZAR TEXTO
-===================================================== */
-
-function normalizeText(text) {
-
-  return text
-
-    .toLowerCase()
-
-    .normalize("NFD")
-
-    .replace(/[\u0300-\u036f]/g, "")
-
-    .replace(/[^a-z0-9]/g, "");
+    showAdminPanel();
 
 }
 
 
-/* =====================================================
-   VERIFICAR PALAVRÕES
-===================================================== */
+// ========================================
+// NAVEGAÇÃO
+// ========================================
 
-function containsBlockedWord(text) {
+const navButtons = document.querySelectorAll(".nav-btn");
 
-  const normalized = normalizeText(text);
+navButtons.forEach(button => {
 
-  return blockedWords.some(word => {
+    button.addEventListener("click", function () {
 
-    const normalizedWord = normalizeText(word);
-
-    return normalized.includes(normalizedWord);
-
-  });
-
-}
-
-
-/* =====================================================
-   FOTO
-===================================================== */
-
-function readImage(file, callback) {
-
-  if (!file) {
-
-    callback("");
-
-    return;
-
-  }
-
-
-  const reader = new FileReader();
-
-
-  reader.onload = event => {
-
-    callback(event.target.result);
-
-  };
-
-
-  reader.readAsDataURL(file);
-
-}
-
-
-/* =====================================================
-   PREVIEW DA FOTO DA EQUIPA
-===================================================== */
-
-const teamPhotoInput =
-  document.getElementById("teamPhoto");
-
-const teamPhotoPreview =
-  document.getElementById("teamPhotoPreview");
-
-
-teamPhotoInput.addEventListener("change", () => {
-
-  const file = teamPhotoInput.files[0];
-
-  if (!file) {
-
-    teamPhotoPreview.innerHTML = "";
-
-    teamPhotoPreview.style.display = "none";
-
-    return;
-
-  }
-
-
-  readImage(file, image => {
-
-    teamPhotoPreview.innerHTML =
-      `<img src="${image}" alt="Preview da equipa">`;
-
-    teamPhotoPreview.style.display = "block";
-
-  });
-
-});
-
-
-/* =====================================================
-   PREVIEW DA FOTO DO JOGADOR
-===================================================== */
-
-const playerPhotoInput =
-  document.getElementById("playerPhoto");
-
-const playerPhotoPreview =
-  document.getElementById("playerPhotoPreview");
-
-
-playerPhotoInput.addEventListener("change", () => {
-
-  const file = playerPhotoInput.files[0];
-
-  if (!file) {
-
-    playerPhotoPreview.innerHTML = "";
-
-    playerPhotoPreview.style.display = "none";
-
-    return;
-
-  }
-
-
-  readImage(file, image => {
-
-    playerPhotoPreview.innerHTML =
-      `<img src="${image}" alt="Preview do jogador">`;
-
-    playerPhotoPreview.style.display = "block";
-
-  });
-
-});
-
-
-/* =====================================================
-   RENDERIZAR EQUIPAS
-===================================================== */
-
-function renderTeams() {
-
-  const container =
-    document.getElementById("teamsGrid");
-
-
-  if (teams.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        Ainda não existem equipas cadastradas.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = teams.map((team, index) => {
-
-    const photo = team.photo
-      ? `
-        <img
-          src="${team.photo}"
-          class="team-photo"
-          alt="${team.name}"
-        >
-      `
-      : `
-        <div class="team-logo">
-          ${team.short}
-        </div>
-      `;
-
-
-    return `
-
-      <article class="team-card">
-
-        ${photo}
-
-        <h3>
-          ${team.name}
-        </h3>
-
-        <p>
-          ${team.short}
-        </p>
-
-        <p>
-          ${team.players.length} jogadores inscritos
-        </p>
-
-        <button
-          onclick="deleteTeam(${index})"
-        >
-          Eliminar
-        </button>
-
-      </article>
-
-    `;
-
-  }).join("");
-
-}
-
-
-/* =====================================================
-   CADASTRO DE EQUIPA
-===================================================== */
-
-const teamNameInput =
-  document.getElementById("teamName");
-
-const teamShortInput =
-  document.getElementById("teamShort");
-
-const addTeamBtn =
-  document.getElementById("addTeamBtn");
-
-
-addTeamBtn.addEventListener("click", () => {
-
-  const name =
-    teamNameInput.value.trim();
-
-  const short =
-    teamShortInput.value.trim();
-
-
-  /* CAMPOS VAZIOS */
-
-  if (name === "" || short === "") {
-
-    alert("Preenche o nome e a sigla da equipa.");
-
-    return;
-
-  }
-
-
-  /* PALAVRÕES */
-
-  if (
-    containsBlockedWord(name) ||
-    containsBlockedWord(short)
-  ) {
-
-    alert(
-      "O nome ou a sigla contém linguagem não permitida."
-    );
-
-    return;
-
-  }
-
-
-  /* DUPLICADOS */
-
-  const alreadyExists = teams.some(team =>
-
-    team.name.toLowerCase() === name.toLowerCase() ||
-
-    team.short.toLowerCase() === short.toLowerCase()
-
-  );
-
-
-  if (alreadyExists) {
-
-    alert(
-      "Já existe uma equipa com esse nome ou sigla."
-    );
-
-    return;
-
-  }
-
-
-  const photoFile =
-    teamPhotoInput.files[0];
-
-
-  readImage(photoFile, photo => {
-
-    teams.push({
-
-      name: name,
-
-      short: short,
-
-      color: "blue",
-
-      photo: photo,
-
-      players: []
+        showPage(button.dataset.page);
 
     });
 
-
-    localStorage.setItem(
-      "teams",
-      JSON.stringify(teams)
-    );
-
-
-    renderTeams();
-
-    updateTeamSelect();
-
-    updateStats();
-
-
-    teamNameInput.value = "";
-
-    teamShortInput.value = "";
-
-    teamPhotoInput.value = "";
-
-    teamPhotoPreview.innerHTML = "";
-
-    teamPhotoPreview.style.display = "none";
-
-
-    alert("Equipa cadastrada com sucesso!");
-
-  });
-
 });
 
 
-/* =====================================================
-   ELIMINAR EQUIPA
-===================================================== */
+function showPage(pageId) {
 
-function deleteTeam(index) {
+    document.querySelectorAll(".admin-page").forEach(page => {
 
-  const team = teams[index];
+        page.classList.add("hidden");
 
+    });
 
-  if (!team) {
+    document.getElementById(pageId).classList.remove("hidden");
 
-    return;
+    navButtons.forEach(button => {
 
-  }
+        button.classList.remove("active");
 
+        if (button.dataset.page === pageId) {
+            button.classList.add("active");
+        }
 
-  const confirmed = confirm(
+    });
 
-    `Tens certeza que queres eliminar a equipa "${team.name}"?`
-
-  );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  /*
-    Também eliminamos os jogadores
-    pertencentes à equipa.
-  */
-
-  const remainingPlayers =
-    players.filter(
-      player => player.team !== team.name
-    );
-
-
-  players.length = 0;
-
-  players.push(...remainingPlayers);
-
-
-  teams.splice(index, 1);
-
-
-  localStorage.setItem(
-    "teams",
-    JSON.stringify(teams)
-  );
-
-
-  localStorage.setItem(
-    "players",
-    JSON.stringify(players)
-  );
-
-
-  renderTeams();
-
-  renderPlayers();
-
-  updateTeamSelect();
-
-  updateStats();
-
-}
-
-
-/* =====================================================
-   SELECT DE EQUIPAS
-===================================================== */
-
-function updateTeamSelect() {
-
-  const select =
-    document.getElementById("playerTeam");
-
-
-  const currentValue =
-    select.value;
-
-
-  select.innerHTML = `
-
-    <option value="">
-      Selecionar equipa
-    </option>
-
-  `;
-
-
-  teams.forEach(team => {
-
-    const option =
-      document.createElement("option");
-
-
-    option.value = team.name;
-
-    option.textContent =
-      `${team.name} (${team.short})`;
-
-
-    select.appendChild(option);
-
-  });
-
-
-  select.value = currentValue;
-
-}
-
-
-/* =====================================================
-   RENDERIZAR JOGADORES
-===================================================== */
-
-function renderPlayers() {
-
-  const container =
-    document.getElementById("playersGrid");
-
-
-  if (players.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        Ainda não existem jogadores cadastrados.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = players.map(
-    (player, index) => {
-
-      const photo = player.photo
-
-        ? `
-          <img
-            src="${player.photo}"
-            class="player-photo"
-            alt="${player.name}"
-          >
-        `
-
-        : `
-          <div class="player-placeholder">
-            👤
-          </div>
-        `;
-
-
-      return `
-
-        <article class="player-card">
-
-          ${photo}
-
-          <h3>
-            ${player.name}
-          </h3>
-
-          <div class="player-team">
-            ${player.team}
-          </div>
-
-          <div class="player-position">
-            ${player.position}
-          </div>
-
-          <div class="player-number">
-            ${player.number}
-          </div>
-
-          <br>
-
-          <button
-            onclick="deletePlayer(${index})"
-          >
-            Eliminar
-          </button>
-
-        </article>
-
-      `;
-
-    }
-
-  ).join("");
-
-}
-
-
-/* =====================================================
-   CADASTRO DE JOGADOR
-===================================================== */
-
-const playerNameInput =
-  document.getElementById("playerName");
-
-const playerNumberInput =
-  document.getElementById("playerNumber");
-
-const playerPositionInput =
-  document.getElementById("playerPosition");
-
-const playerTeamInput =
-  document.getElementById("playerTeam");
-
-const addPlayerBtn =
-  document.getElementById("addPlayerBtn");
-
-
-addPlayerBtn.addEventListener("click", () => {
-
-  const name =
-    playerNameInput.value.trim();
-
-  const number =
-    Number(playerNumberInput.value);
-
-  const position =
-    playerPositionInput.value;
-
-  const team =
-    playerTeamInput.value;
-
-
-  /* CAMPOS */
-
-  if (
-    name === "" ||
-    !number ||
-    position === "" ||
-    team === ""
-  ) {
-
-    alert(
-      "Preenche todos os campos do jogador."
-    );
-
-    return;
-
-  }
-
-
-  /* PALAVRÕES */
-
-  if (containsBlockedWord(name)) {
-
-    alert(
-      "O nome contém linguagem não permitida."
-    );
-
-    return;
-
-  }
-
-
-  /* JOGADOR DUPLICADO */
-
-  const alreadyExists =
-    players.some(player =>
-
-      player.name.toLowerCase() ===
-      name.toLowerCase() &&
-
-      player.team === team
-
-    );
-
-
-  if (alreadyExists) {
-
-    alert(
-      "Este jogador já está cadastrado nessa equipa."
-    );
-
-    return;
-
-  }
-
-
-  /* NÚMERO DUPLICADO */
-
-  const numberExists =
-    players.some(player =>
-
-      player.team === team &&
-      player.number === number
-
-    );
-
-
-  if (numberExists) {
-
-    alert(
-      "Esse número de camisola já está sendo usado nessa equipa."
-    );
-
-    return;
-
-  }
-
-
-  const photoFile =
-    playerPhotoInput.files[0];
-
-
-  readImage(photoFile, photo => {
-
-    const newPlayer = {
-
-      id: Date.now(),
-
-      name: name,
-
-      number: number,
-
-      position: position,
-
-      team: team,
-
-      photo: photo,
-
-      goals: 0
-
+    const titles = {
+        dashboard: "Dashboard",
+        campeonatos: "Campeonatos",
+        equipas: "Equipas",
+        jogadores: "Jogadores",
+        jogos: "Jogos",
+        resultados: "Resultados"
     };
 
-
-    players.push(newPlayer);
-
-
-    localStorage.setItem(
-      "players",
-      JSON.stringify(players)
-    );
-
-
-    /*
-      Atualizar quantidade de jogadores
-      da equipa.
-    */
-
-    const selectedTeam =
-      teams.find(
-        teamObject =>
-          teamObject.name === team
-      );
-
-
-    if (selectedTeam) {
-
-      selectedTeam.players =
-        players.filter(
-          player =>
-            player.team === team
-        );
-
-    }
-
-
-    localStorage.setItem(
-      "teams",
-      JSON.stringify(teams)
-    );
-
-
-    renderPlayers();
-
-    renderTeams();
-
-    updateStats();
-
-
-    /* LIMPAR FORMULÁRIO */
-
-    playerNameInput.value = "";
-
-    playerNumberInput.value = "";
-
-    playerPositionInput.value = "";
-
-    playerTeamInput.value = "";
-
-    playerPhotoInput.value = "";
-
-    playerPhotoPreview.innerHTML = "";
-
-    playerPhotoPreview.style.display = "none";
-
-
-    alert(
-      "Jogador cadastrado com sucesso!"
-    );
-
-  });
-
-});
-
-
-/* =====================================================
-   ELIMINAR JOGADOR
-===================================================== */
-
-function deletePlayer(index) {
-
-  const player =
-    players[index];
-
-
-  if (!player) {
-
-    return;
-
-  }
-
-
-  const confirmed = confirm(
-
-    `Eliminar o jogador "${player.name}"?`
-
-  );
-
-
-  if (!confirmed) {
-
-    return;
-
-  }
-
-
-  players.splice(index, 1);
-
-
-  localStorage.setItem(
-    "players",
-    JSON.stringify(players)
-  );
-
-
-  /*
-    Atualizar jogadores da equipa.
-  */
-
-  teams.forEach(team => {
-
-    team.players =
-      players.filter(
-        playerObject =>
-          playerObject.team === team.name
-      );
-
-  });
-
-
-  localStorage.setItem(
-    "teams",
-    JSON.stringify(teams)
-  );
-
-
-  renderPlayers();
-
-  renderTeams();
-
-  updateStats();
+    document.getElementById("pageTitle").textContent =
+        titles[pageId] || "Administração";
 
 }
 
 
-/* =====================================================
-   ESTATÍSTICAS DO INÍCIO
-===================================================== */
+// ========================================
+// ACESSO RÁPIDO
+// ========================================
+
+document.querySelectorAll("[data-open]").forEach(button => {
+
+    button.addEventListener("click", function () {
+
+        showPage(button.dataset.open);
+
+    });
+
+});
+
+
+// ========================================
+// GUARDAR DADOS
+// ========================================
+
+function saveData() {
+
+    localStorage.setItem("teams", JSON.stringify(teams));
+    localStorage.setItem("players", JSON.stringify(players));
+    localStorage.setItem("games", JSON.stringify(games));
+    localStorage.setItem("championships", JSON.stringify(championships));
+
+}
+
+
+// ========================================
+// ATUALIZAR ESTATÍSTICAS
+// ========================================
 
 function updateStats() {
 
-  const totalTeams =
-    document.getElementById("totalTeams");
+    document.getElementById("totalTeams").textContent = teams.length;
 
-  const totalPlayers =
-    document.getElementById("totalPlayers");
+    document.getElementById("totalPlayers").textContent = players.length;
 
-  const totalGames =
-    document.getElementById("totalGames");
+    document.getElementById("totalGames").textContent = games.length;
 
-  const totalGoals =
-    document.getElementById("totalGoals");
-
-
-  totalTeams.textContent =
-    teams.length;
-
-
-  totalPlayers.textContent =
-    players.length;
-
-
-  totalGames.textContent =
-    games.length;
-
-
-  const goals =
-    players.reduce(
-      (total, player) =>
-        total + (player.goals || 0),
-      0
-    );
-
-
-  totalGoals.textContent =
-    goals;
+    document.getElementById("totalChampionships").textContent =
+        championships.length;
 
 }
 
 
-/* =====================================================
-   RESULTADOS RECENTES
-===================================================== */
+// ========================================
+// CRIAR CAMPEONATO
+// ========================================
 
-function renderRecentResults() {
+const championshipForm = document.getElementById("championshipForm");
 
-  const container =
-    document.getElementById("recentResults");
+championshipForm.addEventListener("submit", function (event) {
 
+    event.preventDefault();
 
-  const finishedGames =
-    games
-      .filter(
-        game =>
-          game.status === "Finalizado"
-      )
-      .slice(-3)
-      .reverse();
+    const name = document.getElementById("championshipName").value.trim();
 
+    const year = document.getElementById("championshipYear").value;
 
-  if (finishedGames.length === 0) {
+    const format = document.getElementById("championshipFormat").value;
 
-    container.innerHTML = `
-      <div class="empty-state">
-        Ainda não existem resultados.
-      </div>
-    `;
+    if (!name || !year || !format) {
 
-    return;
+        alert("Preenche todos os campos.");
 
-  }
-
-
-  container.innerHTML =
-    finishedGames.map(game => `
-
-      <div class="result-row">
-
-        <div class="result-teams">
-
-          <span>
-            ${game.home}
-          </span>
-
-          <span>
-            ×
-          </span>
-
-          <span>
-            ${game.away}
-          </span>
-
-        </div>
-
-        <strong>
-          ${game.homeScore} -
-          ${game.awayScore}
-        </strong>
-
-      </div>
-
-    `).join("");
-
-}
-
-
-/* =====================================================
-   ARTILHEIROS
-===================================================== */
-
-function renderTopScorers() {
-
-  const container =
-    document.getElementById("topScorers");
-
-
-  const sortedPlayers =
-    [...players]
-      .sort(
-        (a, b) =>
-          (b.goals || 0) -
-          (a.goals || 0)
-      )
-      .slice(0, 4);
-
-
-  if (sortedPlayers.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        Ainda não existem estatísticas.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    sortedPlayers.map(
-      (player, index) => `
-
-      <div class="scorer-row">
-
-        <div class="mini-player">
-
-          <strong>
-            ${index + 1}
-          </strong>
-
-          <div>
-
-            <strong>
-              ${player.name}
-            </strong>
-
-            <small>
-              ${player.team}
-            </small>
-
-          </div>
-
-        </div>
-
-        <strong>
-          ${player.goals || 0} ⚽
-        </strong>
-
-      </div>
-
-    `
-    ).join("");
-
-}
-
-
-/* =====================================================
-   JOGOS
-===================================================== */
-
-function renderGames(filter = "todos") {
-
-  const container =
-    document.getElementById("gamesList");
-
-
-  let filtered = games;
-
-
-  if (filter === "proximo") {
-
-    filtered =
-      games.filter(
-        game =>
-          game.status === "Próximo"
-      );
-
-  }
-
-
-  if (filter === "resultado") {
-
-    filtered =
-      games.filter(
-        game =>
-          game.status === "Finalizado"
-      );
-
-  }
-
-
-  if (filtered.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        Nenhum jogo disponível.
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    filtered.map(game => `
-
-      <article class="game">
-
-        <div class="game-date">
-
-          <strong>
-            ${game.date}
-          </strong>
-
-          <br>
-
-          ${game.time}
-
-        </div>
-
-
-        <div class="game-teams">
-
-          <span>
-            ${game.home}
-          </span>
-
-          <span class="game-score">
-
-            ${
-              game.status === "Finalizado"
-
-              ? `${game.homeScore} - ${game.awayScore}`
-
-              : "VS"
-            }
-
-          </span>
-
-          <span>
-            ${game.away}
-          </span>
-
-        </div>
-
-
-        <div class="game-status">
-
-          ${game.status}
-
-        </div>
-
-      </article>
-
-    `).join("");
-
-}
-
-
-/* =====================================================
-   CLASSIFICAÇÃO
-===================================================== */
-
-function renderStandings() {
-
-  const container =
-    document.getElementById("standings");
-
-
-  if (standings.length === 0) {
-
-    container.innerHTML = `
-      <tr>
-        <td colspan="10">
-          Ainda não existem dados.
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    standings.map(
-      (team, index) => `
-
-      <tr>
-
-        <td class="position">
-          ${index + 1}
-        </td>
-
-        <td>
-          <strong>
-            ${team.team}
-          </strong>
-        </td>
-
-        <td>${team.j}</td>
-        <td>${team.v}</td>
-        <td>${team.e}</td>
-        <td>${team.d}</td>
-        <td>${team.gm}</td>
-        <td>${team.gs}</td>
-        <td>${team.sg}</td>
-
-        <td class="points">
-          ${team.pts}
-        </td>
-
-      </tr>
-
-    `
-    ).join("");
-
-}
-
-
-/* =====================================================
-   ARTILHARIA
-===================================================== */
-
-function renderScorers() {
-
-  const container =
-    document.getElementById("scorers");
-
-
-  const sortedPlayers =
-    [...players].sort(
-      (a, b) =>
-        (b.goals || 0) -
-        (a.goals || 0)
-    );
-
-
-  if (sortedPlayers.length === 0) {
-
-    container.innerHTML = `
-      <tr>
-        <td colspan="4">
-          Ainda não existem jogadores.
-        </td>
-      </tr>
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML =
-    sortedPlayers.map(
-      (player, index) => `
-
-      <tr>
-
-        <td class="position">
-          ${index + 1}
-        </td>
-
-        <td>
-          <strong>
-            ${player.name}
-          </strong>
-        </td>
-
-        <td>
-          ${player.team}
-        </td>
-
-        <td>
-          <strong>
-            ${player.goals || 0}
-          </strong>
-          ⚽
-        </td>
-
-      </tr>
-
-    `
-    ).join("");
-
-}
-
-
-/* =====================================================
-   FILTRO DOS JOGOS
-===================================================== */
-
-document
-  .getElementById("gameFilter")
-  .addEventListener(
-    "change",
-    event => {
-
-      renderGames(
-        event.target.value
-      );
+        return;
 
     }
-  );
 
+    const exists = championships.some(championship =>
+        championship.name.toLowerCase() === name.toLowerCase()
+    );
 
-/* =====================================================
-   INICIALIZAÇÃO
-===================================================== */
+    if (exists) {
 
-teams.forEach(team => {
+        alert("Já existe um campeonato com esse nome.");
 
-  /*
-    Corrige equipas antigas que ainda
-    não tenham players como array.
-  */
+        return;
 
-  if (!Array.isArray(team.players)) {
+    }
 
-    team.players =
-      players.filter(
-        player =>
-          player.team === team.name
-      );
+    championships.push({
 
-  }
+        id: crypto.randomUUID(),
+
+        name,
+        year,
+        format,
+
+        status: "ativo"
+
+    });
+
+    saveData();
+
+    championshipForm.reset();
+
+    renderAll();
+
+    alert("Campeonato criado com sucesso!");
 
 });
 
 
-localStorage.setItem(
-  "teams",
-  JSON.stringify(teams)
-);
+// ========================================
+// MOSTRAR CAMPEONATOS
+// ========================================
+
+function renderChampionships() {
+
+    const container = document.getElementById("championshipsList");
+
+    if (championships.length === 0) {
+
+        container.innerHTML = `
+            <p class="empty-message">
+                Ainda não existem campeonatos.
+            </p>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = championships.map(championship => `
+
+        <div class="list-item">
+
+            <div>
+
+                <strong>${escapeHTML(championship.name)}</strong>
+
+                <p>
+                    ${escapeHTML(String(championship.year))}
+                    •
+                    ${championship.format === "knockout"
+                        ? "Mata-mata"
+                        : "Grupos + Mata-mata"}
+                </p>
+
+            </div>
+
+            <button
+                class="delete-btn"
+                data-delete-championship="${championship.id}"
+            >
+                Eliminar
+            </button>
+
+        </div>
+
+    `).join("");
+
+}
 
 
-updateTeamSelect();
+// ========================================
+// ELIMINAR CAMPEONATO
+// ========================================
 
-renderTeams();
+document.getElementById("championshipsList").addEventListener("click", function (event) {
 
-renderPlayers();
+    const button = event.target.closest("[data-delete-championship]");
 
-renderRecentResults();
+    if (!button) return;
 
-renderTopScorers();
+    const id = button.dataset.deleteChampionship;
 
-renderGames();
+    const index = championships.findIndex(championship => championship.id === id);
 
-renderStandings();
+    if (index === -1) return;
 
-renderScorers();
+    if (!confirm("Tens a certeza de que queres eliminar este campeonato?")) {
+        return;
+    }
 
-updateStats();
+    championships.splice(index, 1);
+
+    saveData();
+
+    renderAll();
+
+});
+
+
+// ========================================
+// CADASTRAR EQUIPA
+// ========================================
+
+const teamForm = document.getElementById("teamForm");
+
+teamForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const name = document.getElementById("teamName").value.trim();
+
+    const short = document.getElementById("teamShort").value.trim();
+
+    if (!name || !short) {
+
+        alert("Preenche todos os campos.");
+
+        return;
+
+    }
+
+    const exists = teams.some(team =>
+        team.name.toLowerCase() === name.toLowerCase() ||
+        team.short.toLowerCase() === short.toLowerCase()
+    );
+
+    if (exists) {
+
+        alert("Já existe uma equipa com esse nome ou sigla.");
+
+        return;
+
+    }
+
+    teams.push({
+
+        id: crypto.randomUUID(),
+
+        name,
+        short,
+
+        captainId: null
+
+    });
+
+    saveData();
+
+    teamForm.reset();
+
+    renderAll();
+
+    alert("Equipa cadastrada com sucesso!");
+
+});
+
+
+// ========================================
+// MOSTRAR EQUIPAS
+// ========================================
+
+function renderTeams() {
+
+    const container = document.getElementById("teamsList");
+
+    if (teams.length === 0) {
+
+        container.innerHTML = `
+            <p class="empty-message">
+                Ainda não existem equipas.
+            </p>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = teams.map(team => `
+
+        <div class="list-item">
+
+            <div>
+
+                <strong>${escapeHTML(team.name)}</strong>
+
+                <p>
+                    Sigla: ${escapeHTML(team.short)}
+                </p>
+
+            </div>
+
+            <button
+                class="delete-btn"
+                data-delete-team="${team.id}"
+            >
+                Eliminar
+            </button>
+
+        </div>
+
+    `).join("");
+
+}
+
+
+// ========================================
+// ELIMINAR EQUIPA
+// ========================================
+
+document.getElementById("teamsList").addEventListener("click", function (event) {
+
+    const button = event.target.closest("[data-delete-team]");
+
+    if (!button) return;
+
+    const id = button.dataset.deleteTeam;
+
+    const index = teams.findIndex(team => team.id === id);
+
+    if (index === -1) return;
+
+    if (!confirm("Eliminar esta equipa e os seus jogadores?")) {
+        return;
+    }
+
+    teams.splice(index, 1);
+
+    for (let i = players.length - 1; i >= 0; i--) {
+
+        if (players[i].teamId === id) {
+            players.splice(i, 1);
+        }
+
+    }
+
+    saveData();
+
+    renderAll();
+
+});
+
+
+// ========================================
+// ATUALIZAR SELECTS DE EQUIPAS
+// ========================================
+
+function updateTeamSelects() {
+
+    const selects = [
+
+        document.getElementById("playerTeam"),
+        document.getElementById("gameHome"),
+        document.getElementById("gameAway")
+
+    ];
+
+    selects.forEach(select => {
+
+        const previousValue = select.value;
+
+        select.innerHTML = `
+            <option value="">Selecionar equipa</option>
+        `;
+
+        teams.forEach(team => {
+
+            const option = document.createElement("option");
+
+            option.value = team.id;
+
+            option.textContent = team.name;
+
+            select.appendChild(option);
+
+        });
+
+        if (teams.some(team => team.id === previousValue)) {
+
+            select.value = previousValue;
+
+        }
+
+    });
+
+}
+
+
+// ========================================
+// CADASTRAR JOGADOR
+// ========================================
+
+const playerForm = document.getElementById("playerForm");
+
+playerForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const name = document.getElementById("playerName").value.trim();
+
+    const number = Number(document.getElementById("playerNumber").value);
+
+    const position = document.getElementById("playerPosition").value;
+
+    const teamId = document.getElementById("playerTeam").value;
+
+    if (!name || !number || !position || !teamId) {
+
+        alert("Preenche todos os campos.");
+
+        return;
+
+    }
+
+    const team = teams.find(team => team.id === teamId);
+
+    if (!team) {
+
+        alert("Seleciona uma equipa válida.");
+
+        return;
+
+    }
+
+    const duplicate = players.some(player =>
+        player.teamId === teamId &&
+        (
+            player.number === number ||
+            player.name.toLowerCase() === name.toLowerCase()
+        )
+    );
+
+    if (duplicate) {
+
+        alert("Este jogador ou número já está registado nessa equipa.");
+
+        return;
+
+    }
+
+    players.push({
+
+        id: crypto.randomUUID(),
+
+        name,
+        number,
+        position,
+        teamId,
+
+        goals: 0
+
+    });
+
+    saveData();
+
+    playerForm.reset();
+
+    renderAll();
+
+    alert("Jogador cadastrado com sucesso!");
+
+});
+
+
+// ========================================
+// MOSTRAR JOGADORES
+// ========================================
+
+function renderPlayers() {
+
+    const container = document.getElementById("playersList");
+
+    if (players.length === 0) {
+
+        container.innerHTML = `
+            <p class="empty-message">
+                Ainda não existem jogadores.
+            </p>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = players.map(player => {
+
+        const team = teams.find(team => team.id === player.teamId);
+
+        return `
+
+            <div class="list-item">
+
+                <div>
+
+                    <strong>${escapeHTML(player.name)}</strong>
+
+                    <p>
+                        Nº ${player.number}
+                        •
+                        ${escapeHTML(player.position)}
+                        •
+                        ${escapeHTML(team ? team.name : "Sem equipa")}
+                    </p>
+
+                </div>
+
+                <button
+                    class="delete-btn"
+                    data-delete-player="${player.id}"
+                >
+                    Eliminar
+                </button>
+
+            </div>
+
+        `;
+
+    }).join("");
+
+}
+
+
+// ========================================
+// ELIMINAR JOGADOR
+// ========================================
+
+document.getElementById("playersList").addEventListener("click", function (event) {
+
+    const button = event.target.closest("[data-delete-player]");
+
+    if (!button) return;
+
+    const id = button.dataset.deletePlayer;
+
+    const index = players.findIndex(player => player.id === id);
+
+    if (index === -1) return;
+
+    if (!confirm("Tens a certeza de que queres eliminar este jogador?")) {
+        return;
+    }
+
+    players.splice(index, 1);
+
+    // Se o jogador era capitão, retirar a função.
+
+    teams.forEach(team => {
+
+        if (team.captainId === id) {
+            team.captainId = null;
+        }
+
+    });
+
+    saveData();
+
+    renderAll();
+
+});
+
+
+// ========================================
+// AGENDAR JOGO
+// ========================================
+
+const gameForm = document.getElementById("gameForm");
+
+gameForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const homeId = document.getElementById("gameHome").value;
+
+    const awayId = document.getElementById("gameAway").value;
+
+    const date = document.getElementById("gameDate").value;
+
+    const time = document.getElementById("gameTime").value;
+
+    const field = document.getElementById("gameField").value.trim();
+
+    if (!homeId || !awayId || !date || !time || !field) {
+
+        alert("Preenche todos os campos.");
+
+        return;
+
+    }
+
+    if (homeId === awayId) {
+
+        alert("Uma equipa não pode jogar contra si própria.");
+
+        return;
+
+    }
+
+    games.push({
+
+        id: crypto.randomUUID(),
+
+        homeId,
+        awayId,
+
+        date,
+        time,
+        field,
+
+        homeScore: null,
+        awayScore: null,
+
+        status: "Agendado"
+
+    });
+
+    saveData();
+
+    gameForm.reset();
+
+    renderAll();
+
+    alert("Jogo agendado com sucesso!");
+
+});
+
+
+// ========================================
+// MOSTRAR JOGOS
+// ========================================
+
+function renderGames() {
+
+    const container = document.getElementById("gamesList");
+
+    if (games.length === 0) {
+
+        container.innerHTML = `
+            <p class="empty-message">
+                Ainda não existem jogos agendados.
+            </p>
+        `;
+
+        updateResultSelect();
+
+        return;
+
+    }
+
+    const sortedGames = [...games].sort((a, b) => {
+
+        return new Date(`${a.date}T${a.time}`) -
+               new Date(`${b.date}T${b.time}`);
+
+    });
+
+    container.innerHTML = sortedGames.map(game => {
+
+        const home = teams.find(team => team.id === game.homeId);
+
+        const away = teams.find(team => team.id === game.awayId);
+
+        return `
+
+            <div class="list-item">
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(home ? home.name : "Equipa removida")}
+                        ${game.homeScore !== null ? game.homeScore : "-"}
+                        :
+                        ${game.awayScore !== null ? game.awayScore : "-"}
+                        ${escapeHTML(away ? away.name : "Equipa removida")}
+                    </strong>
+
+                    <p>
+                        ${formatDate(game.date)}
+                        •
+                        ${escapeHTML(game.time)}
+                        •
+                        ${escapeHTML(game.field)}
+                    </p>
+
+                    <p>${escapeHTML(game.status)}</p>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }).join("");
+
+    updateResultSelect();
+
+}
+
+
+// ========================================
+// ATUALIZAR SELECT DE RESULTADOS
+// ========================================
+
+function updateResultSelect() {
+
+    const select = document.getElementById("resultGame");
+
+    select.innerHTML = `
+        <option value="">Selecionar jogo</option>
+    `;
+
+    games.forEach(game => {
+
+        const home = teams.find(team => team.id === game.homeId);
+
+        const away = teams.find(team => team.id === game.awayId);
+
+        if (!home || !away) return;
+
+        const option = document.createElement("option");
+
+        option.value = game.id;
+
+        option.textContent = `${home.name} vs ${away.name} — ${formatDate(game.date)}`;
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+// ========================================
+// REGISTAR RESULTADO
+// ========================================
+
+const resultForm = document.getElementById("resultForm");
+
+resultForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const gameId = document.getElementById("resultGame").value;
+
+    const homeScore = Number(document.getElementById("homeScore").value);
+
+    const awayScore = Number(document.getElementById("awayScore").value);
+
+    if (!gameId || homeScore < 0 || awayScore < 0) {
+
+        alert("Introduz um resultado válido.");
+
+        return;
+
+    }
+
+    const game = games.find(game => game.id === gameId);
+
+    if (!game) {
+
+        alert("Jogo não encontrado.");
+
+        return;
+
+    }
+
+    game.homeScore = homeScore;
+
+    game.awayScore = awayScore;
+
+    game.status = "Terminado";
+
+    saveData();
+
+    resultForm.reset();
+
+    renderAll();
+
+    alert("Resultado registado com sucesso!");
+
+});
+
+
+// ========================================
+// FORMATAR DATA
+// ========================================
+
+function formatDate(date) {
+
+    if (!date) return "";
+
+    const parts = date.split("-");
+
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+
+// ========================================
+// PROTEGER TEXTO INSERIDO
+// ========================================
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+// ========================================
+// ATUALIZAR TUDO
+// ========================================
+
+function renderAll() {
+
+    updateStats();
+
+    renderChampionships();
+
+    renderTeams();
+
+    renderPlayers();
+
+    renderGames();
+
+    updateTeamSelects();
+
+}
