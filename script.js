@@ -25,9 +25,14 @@ const logoutBtn = document.getElementById("logoutBtn");
 // LOGIN DEMONSTRATIVO
 // ========================================
 
+// Credenciais atuais do protótipo:
+//
+// E-mail: listaM@adm.com
+// Palavra-passe: ListaM
+//
 // IMPORTANTE:
-// Estas credenciais são apenas para testar o protótipo.
-// Não são um sistema de autenticação seguro.
+// Este login ainda é apenas para o protótipo.
+// Mais tarde vamos substituir pelo Supabase Auth.
 
 const DEMO_EMAIL = "listaM@adm.com";
 const DEMO_PASSWORD = "ListaM";
@@ -37,26 +42,36 @@ const DEMO_PASSWORD = "ListaM";
 // INICIAR SESSÃO
 // ========================================
 
-loginForm.addEventListener("submit", function (event) {
+if (loginForm) {
 
-    event.preventDefault();
+    loginForm.addEventListener("submit", function (event) {
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+        event.preventDefault();
 
-    if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
 
-        sessionStorage.setItem("adminLoggedIn", "true");
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-        showAdminPanel();
+        if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
 
-    } else {
+            sessionStorage.setItem("adminLoggedIn", "true");
 
-        loginMessage.textContent = "E-mail ou palavra-passe incorretos.";
+            loginMessage.textContent = "";
 
-    }
+            showAdminPanel();
 
-});
+        } else {
+
+            loginMessage.textContent =
+                "E-mail ou palavra-passe incorretos.";
+
+        }
+
+    });
+
+}
 
 
 // ========================================
@@ -64,6 +79,8 @@ loginForm.addEventListener("submit", function (event) {
 // ========================================
 
 function showAdminPanel() {
+
+    if (!loginPage || !adminPanel) return;
 
     loginPage.classList.add("hidden");
     adminPanel.classList.remove("hidden");
@@ -77,16 +94,22 @@ function showAdminPanel() {
 // TERMINAR SESSÃO
 // ========================================
 
-logoutBtn.addEventListener("click", function () {
+if (logoutBtn) {
 
-    sessionStorage.removeItem("adminLoggedIn");
+    logoutBtn.addEventListener("click", function () {
 
-    adminPanel.classList.add("hidden");
-    loginPage.classList.remove("hidden");
+        sessionStorage.removeItem("adminLoggedIn");
 
-    loginForm.reset();
+        adminPanel.classList.add("hidden");
+        loginPage.classList.remove("hidden");
 
-});
+        loginForm.reset();
+
+        loginMessage.textContent = "";
+
+    });
+
+}
 
 
 // ========================================
@@ -125,29 +148,45 @@ function showPage(pageId) {
 
     });
 
-    document.getElementById(pageId).classList.remove("hidden");
+    const page = document.getElementById(pageId);
+
+    if (page) {
+
+        page.classList.remove("hidden");
+
+    }
 
     navButtons.forEach(button => {
 
         button.classList.remove("active");
 
         if (button.dataset.page === pageId) {
+
             button.classList.add("active");
+
         }
 
     });
 
     const titles = {
+
         dashboard: "Dashboard",
         campeonatos: "Campeonatos",
         equipas: "Equipas",
         jogadores: "Jogadores",
         jogos: "Jogos",
         resultados: "Resultados"
+
     };
 
-    document.getElementById("pageTitle").textContent =
-        titles[pageId] || "Administração";
+    const pageTitle = document.getElementById("pageTitle");
+
+    if (pageTitle) {
+
+        pageTitle.textContent =
+            titles[pageId] || "Administração";
+
+    }
 
 }
 
@@ -203,59 +242,67 @@ function updateStats() {
 // CRIAR CAMPEONATO
 // ========================================
 
-const championshipForm = document.getElementById("championshipForm");
+const championshipForm =
+    document.getElementById("championshipForm");
 
-championshipForm.addEventListener("submit", function (event) {
+if (championshipForm) {
 
-    event.preventDefault();
+    championshipForm.addEventListener("submit", function (event) {
 
-    const name = document.getElementById("championshipName").value.trim();
+        event.preventDefault();
 
-    const year = document.getElementById("championshipYear").value;
+        const name =
+            document.getElementById("championshipName").value.trim();
 
-    const format = document.getElementById("championshipFormat").value;
+        const year =
+            document.getElementById("championshipYear").value;
 
-    if (!name || !year || !format) {
+        const format =
+            document.getElementById("championshipFormat").value;
 
-        alert("Preenche todos os campos.");
+        if (!name || !year || !format) {
 
-        return;
+            alert("Preenche todos os campos.");
 
-    }
+            return;
 
-    const exists = championships.some(championship =>
-        championship.name.toLowerCase() === name.toLowerCase()
-    );
+        }
 
-    if (exists) {
+        const exists = championships.some(championship =>
+            championship.name.toLowerCase() === name.toLowerCase()
+        );
 
-        alert("Já existe um campeonato com esse nome.");
+        if (exists) {
 
-        return;
+            alert("Já existe um campeonato com esse nome.");
 
-    }
+            return;
 
-    championships.push({
+        }
 
-        id: crypto.randomUUID(),
+        championships.push({
 
-        name,
-        year,
-        format,
+            id: crypto.randomUUID(),
 
-        status: "ativo"
+            name,
+            year,
+            format,
+
+            status: "ativo"
+
+        });
+
+        saveData();
+
+        championshipForm.reset();
+
+        renderAll();
+
+        alert("Campeonato criado com sucesso!");
 
     });
 
-    saveData();
-
-    championshipForm.reset();
-
-    renderAll();
-
-    alert("Campeonato criado com sucesso!");
-
-});
+}
 
 
 // ========================================
@@ -264,7 +311,10 @@ championshipForm.addEventListener("submit", function (event) {
 
 function renderChampionships() {
 
-    const container = document.getElementById("championshipsList");
+    const container =
+        document.getElementById("championshipsList");
+
+    if (!container) return;
 
     if (championships.length === 0) {
 
@@ -284,14 +334,18 @@ function renderChampionships() {
 
             <div>
 
-                <strong>${escapeHTML(championship.name)}</strong>
+                <strong>
+                    ${escapeHTML(championship.name)}
+                </strong>
 
                 <p>
                     ${escapeHTML(String(championship.year))}
                     •
-                    ${championship.format === "knockout"
+                    ${
+                        championship.format === "knockout"
                         ? "Mata-mata"
-                        : "Grupos + Mata-mata"}
+                        : "Grupos + Mata-mata"
+                    }
                 </p>
 
             </div>
@@ -314,86 +368,117 @@ function renderChampionships() {
 // ELIMINAR CAMPEONATO
 // ========================================
 
-document.getElementById("championshipsList").addEventListener("click", function (event) {
+const championshipsList =
+    document.getElementById("championshipsList");
 
-    const button = event.target.closest("[data-delete-championship]");
+if (championshipsList) {
 
-    if (!button) return;
+    championshipsList.addEventListener(
+        "click",
+        function (event) {
 
-    const id = button.dataset.deleteChampionship;
+            const button =
+                event.target.closest(
+                    "[data-delete-championship]"
+                );
 
-    const index = championships.findIndex(championship => championship.id === id);
+            if (!button) return;
 
-    if (index === -1) return;
+            const id =
+                button.dataset.deleteChampionship;
 
-    if (!confirm("Tens a certeza de que queres eliminar este campeonato?")) {
-        return;
-    }
+            const index =
+                championships.findIndex(
+                    championship =>
+                        championship.id === id
+                );
 
-    championships.splice(index, 1);
+            if (index === -1) return;
 
-    saveData();
+            if (!confirm(
+                "Tens a certeza de que queres eliminar este campeonato?"
+            )) {
 
-    renderAll();
+                return;
 
-});
+            }
+
+            championships.splice(index, 1);
+
+            saveData();
+
+            renderAll();
+
+        }
+    );
+
+}
 
 
 // ========================================
 // CADASTRAR EQUIPA
 // ========================================
 
-const teamForm = document.getElementById("teamForm");
+const teamForm =
+    document.getElementById("teamForm");
 
-teamForm.addEventListener("submit", function (event) {
+if (teamForm) {
 
-    event.preventDefault();
+    teamForm.addEventListener("submit", function (event) {
 
-    const name = document.getElementById("teamName").value.trim();
+        event.preventDefault();
 
-    const short = document.getElementById("teamShort").value.trim();
+        const name =
+            document.getElementById("teamName").value.trim();
 
-    if (!name || !short) {
+        const short =
+            document.getElementById("teamShort").value.trim();
 
-        alert("Preenche todos os campos.");
+        if (!name || !short) {
 
-        return;
+            alert("Preenche todos os campos.");
 
-    }
+            return;
 
-    const exists = teams.some(team =>
-        team.name.toLowerCase() === name.toLowerCase() ||
-        team.short.toLowerCase() === short.toLowerCase()
-    );
+        }
 
-    if (exists) {
+        const exists = teams.some(team =>
+            team.name.toLowerCase() === name.toLowerCase() ||
+            team.short.toLowerCase() === short.toLowerCase()
+        );
 
-        alert("Já existe uma equipa com esse nome ou sigla.");
+        if (exists) {
 
-        return;
+            alert(
+                "Já existe uma equipa com esse nome ou sigla."
+            );
 
-    }
+            return;
 
-    teams.push({
+        }
 
-        id: crypto.randomUUID(),
+        teams.push({
 
-        name,
-        short,
+            id: crypto.randomUUID(),
 
-        captainId: null
+            name,
+            short,
+
+            captainId: null
+
+        });
+
+        saveData();
+
+        teamForm.reset();
+
+        renderAll();
+
+        alert("Equipa cadastrada com sucesso!");
 
     });
 
-    saveData();
-
-    teamForm.reset();
-
-    renderAll();
-
-    alert("Equipa cadastrada com sucesso!");
-
-});
+}
 
 
 // ========================================
@@ -402,7 +487,10 @@ teamForm.addEventListener("submit", function (event) {
 
 function renderTeams() {
 
-    const container = document.getElementById("teamsList");
+    const container =
+        document.getElementById("teamsList");
+
+    if (!container) return;
 
     if (teams.length === 0) {
 
@@ -413,6 +501,7 @@ function renderTeams() {
         `;
 
         return;
+
     }
 
     container.innerHTML = teams.map(team => {
@@ -429,12 +518,18 @@ function renderTeams() {
 
             <div class="content-card">
 
-                <h3>${escapeHTML(team.name)}</h3>
-
-                <p>Sigla: ${escapeHTML(team.short)}</p>
+                <h3>
+                    ${escapeHTML(team.name)}
+                </h3>
 
                 <p>
-                    Jogadores inscritos: ${teamPlayers.length}
+                    Sigla:
+                    ${escapeHTML(team.short)}
+                </p>
+
+                <p>
+                    Jogadores inscritos:
+                    ${teamPlayers.length}
                 </p>
 
                 <div class="form-group">
@@ -456,7 +551,11 @@ function renderTeams() {
 
                             <option
                                 value="${player.id}"
-                                ${player.id === team.captainId ? "selected" : ""}
+                                ${
+                                    player.id === team.captainId
+                                    ? "selected"
+                                    : ""
+                                }
                             >
 
                                 ${escapeHTML(player.name)}
@@ -471,10 +570,17 @@ function renderTeams() {
                 </div>
 
                 <p>
+
                     Capitão atual:
+
                     <strong>
-                        ${captain ? escapeHTML(captain.name) : "Nenhum"}
+                        ${
+                            captain
+                            ? escapeHTML(captain.name)
+                            : "Nenhum"
+                        }
                     </strong>
+
                 </p>
 
                 <button
@@ -492,79 +598,74 @@ function renderTeams() {
 
 }
 
-document.getElementById("teamsList").addEventListener(
-    "change",
-    function (event) {
 
-        if (!event.target.classList.contains("captain-select")) {
-            return;
-        }
+// ========================================
+// ALTERAR CAPITÃO
+// ========================================
 
-        const teamId = event.target.dataset.teamId;
-        const playerId = event.target.value;
+const teamsList =
+    document.getElementById("teamsList");
 
-        const team = teams.find(
-            team => team.id === teamId
-        );
+if (teamsList) {
 
-        if (!team) return;
+    teamsList.addEventListener(
+        "change",
+        function (event) {
 
-        // Se não houver capitão selecionado, retirar a função.
-
-        if (playerId === "") {
-
-            team.captainId = null;
-
-        } else {
-
-            const player = players.find(
-                player =>
-                    player.id === playerId &&
-                    player.teamId === teamId
-            );
-
-            if (!player) {
-
-                alert("Este jogador não pertence a esta equipa.");
+            if (
+                !event.target.classList.contains(
+                    "captain-select"
+                )
+            ) {
 
                 return;
+
             }
 
-            team.captainId = playerId;
+            const teamId =
+                event.target.dataset.teamId;
+
+            const playerId =
+                event.target.value;
+
+            const team = teams.find(
+                team => team.id === teamId
+            );
+
+            if (!team) return;
+
+            if (playerId === "") {
+
+                team.captainId = null;
+
+            } else {
+
+                const player = players.find(
+                    player =>
+                        player.id === playerId &&
+                        player.teamId === teamId
+                );
+
+                if (!player) {
+
+                    alert(
+                        "Este jogador não pertence a esta equipa."
+                    );
+
+                    return;
+
+                }
+
+                team.captainId = playerId;
+
+            }
+
+            saveData();
+
+            renderTeams();
 
         }
-
-        saveData();
-
-        renderTeams();
-
-    }
-);
-
-    container.innerHTML = teams.map(team => `
-
-        <div class="list-item">
-
-            <div>
-
-                <strong>${escapeHTML(team.name)}</strong>
-
-                <p>
-                    Sigla: ${escapeHTML(team.short)}
-                </p>
-
-            </div>
-
-            <button
-                class="delete-btn"
-                data-delete-team="${team.id}"
-            >
-                Eliminar
-            </button>
-
-        </div>
-
-    `).join("");
+    );
 
 }
 
@@ -573,37 +674,61 @@ document.getElementById("teamsList").addEventListener(
 // ELIMINAR EQUIPA
 // ========================================
 
-document.getElementById("teamsList").addEventListener("click", function (event) {
+if (teamsList) {
 
-    const button = event.target.closest("[data-delete-team]");
+    teamsList.addEventListener(
+        "click",
+        function (event) {
 
-    if (!button) return;
+            const button =
+                event.target.closest(
+                    "[data-delete-team]"
+                );
 
-    const id = button.dataset.deleteTeam;
+            if (!button) return;
 
-    const index = teams.findIndex(team => team.id === id);
+            const id =
+                button.dataset.deleteTeam;
 
-    if (index === -1) return;
+            const index =
+                teams.findIndex(
+                    team => team.id === id
+                );
 
-    if (!confirm("Eliminar esta equipa e os seus jogadores?")) {
-        return;
-    }
+            if (index === -1) return;
 
-    teams.splice(index, 1);
+            if (!confirm(
+                "Eliminar esta equipa e os seus jogadores?"
+            )) {
 
-    for (let i = players.length - 1; i >= 0; i--) {
+                return;
 
-        if (players[i].teamId === id) {
-            players.splice(i, 1);
+            }
+
+            teams.splice(index, 1);
+
+            for (
+                let i = players.length - 1;
+                i >= 0;
+                i--
+            ) {
+
+                if (players[i].teamId === id) {
+
+                    players.splice(i, 1);
+
+                }
+
+            }
+
+            saveData();
+
+            renderAll();
+
         }
+    );
 
-    }
-
-    saveData();
-
-    renderAll();
-
-});
+}
 
 
 // ========================================
@@ -622,15 +747,20 @@ function updateTeamSelects() {
 
     selects.forEach(select => {
 
+        if (!select) return;
+
         const previousValue = select.value;
 
         select.innerHTML = `
-            <option value="">Selecionar equipa</option>
+            <option value="">
+                Selecionar equipa
+            </option>
         `;
 
         teams.forEach(team => {
 
-            const option = document.createElement("option");
+            const option =
+                document.createElement("option");
 
             option.value = team.id;
 
@@ -640,7 +770,11 @@ function updateTeamSelects() {
 
         });
 
-        if (teams.some(team => team.id === previousValue)) {
+        if (
+            teams.some(
+                team => team.id === previousValue
+            )
+        ) {
 
             select.value = previousValue;
 
@@ -655,76 +789,111 @@ function updateTeamSelects() {
 // CADASTRAR JOGADOR
 // ========================================
 
-const playerForm = document.getElementById("playerForm");
+const playerForm =
+    document.getElementById("playerForm");
 
-playerForm.addEventListener("submit", function (event) {
+if (playerForm) {
 
-    event.preventDefault();
+    playerForm.addEventListener(
+        "submit",
+        function (event) {
 
-    const name = document.getElementById("playerName").value.trim();
+            event.preventDefault();
 
-    const number = Number(document.getElementById("playerNumber").value);
+            const name =
+                document.getElementById("playerName")
+                .value.trim();
 
-    const position = document.getElementById("playerPosition").value;
+            const number =
+                Number(
+                    document.getElementById(
+                        "playerNumber"
+                    ).value
+                );
 
-    const teamId = document.getElementById("playerTeam").value;
+            const position =
+                document.getElementById(
+                    "playerPosition"
+                ).value;
 
-    if (!name || !number || !position || !teamId) {
+            const teamId =
+                document.getElementById(
+                    "playerTeam"
+                ).value;
 
-        alert("Preenche todos os campos.");
+            if (
+                !name ||
+                !number ||
+                !position ||
+                !teamId
+            ) {
 
-        return;
+                alert("Preenche todos os campos.");
 
-    }
+                return;
 
-    const team = teams.find(team => team.id === teamId);
+            }
 
-    if (!team) {
+            const team = teams.find(
+                team => team.id === teamId
+            );
 
-        alert("Seleciona uma equipa válida.");
+            if (!team) {
 
-        return;
+                alert(
+                    "Seleciona uma equipa válida."
+                );
 
-    }
+                return;
 
-    const duplicate = players.some(player =>
-        player.teamId === teamId &&
-        (
-            player.number === number ||
-            player.name.toLowerCase() === name.toLowerCase()
-        )
+            }
+
+            const duplicate = players.some(player =>
+                player.teamId === teamId &&
+                (
+                    player.number === number ||
+                    player.name.toLowerCase() ===
+                    name.toLowerCase()
+                )
+            );
+
+            if (duplicate) {
+
+                alert(
+                    "Este jogador ou número já está registado nessa equipa."
+                );
+
+                return;
+
+            }
+
+            players.push({
+
+                id: crypto.randomUUID(),
+
+                name,
+                number,
+                position,
+                teamId,
+
+                goals: 0
+
+            });
+
+            saveData();
+
+            playerForm.reset();
+
+            renderAll();
+
+            alert(
+                "Jogador cadastrado com sucesso!"
+            );
+
+        }
     );
 
-    if (duplicate) {
-
-        alert("Este jogador ou número já está registado nessa equipa.");
-
-        return;
-
-    }
-
-    players.push({
-
-        id: crypto.randomUUID(),
-
-        name,
-        number,
-        position,
-        teamId,
-
-        goals: 0
-
-    });
-
-    saveData();
-
-    playerForm.reset();
-
-    renderAll();
-
-    alert("Jogador cadastrado com sucesso!");
-
-});
+}
 
 
 // ========================================
@@ -733,7 +902,10 @@ playerForm.addEventListener("submit", function (event) {
 
 function renderPlayers() {
 
-    const container = document.getElementById("playersList");
+    const container =
+        document.getElementById("playersList");
+
+    if (!container) return;
 
     if (players.length === 0) {
 
@@ -749,7 +921,9 @@ function renderPlayers() {
 
     container.innerHTML = players.map(player => {
 
-        const team = teams.find(team => team.id === player.teamId);
+        const team = teams.find(
+            team => team.id === player.teamId
+        );
 
         return `
 
@@ -757,14 +931,22 @@ function renderPlayers() {
 
                 <div>
 
-                    <strong>${escapeHTML(player.name)}</strong>
+                    <strong>
+                        ${escapeHTML(player.name)}
+                    </strong>
 
                     <p>
                         Nº ${player.number}
                         •
                         ${escapeHTML(player.position)}
                         •
-                        ${escapeHTML(team ? team.name : "Sem equipa")}
+                        ${
+                            escapeHTML(
+                                team
+                                ? team.name
+                                : "Sem equipa"
+                            )
+                        }
                     </p>
 
                 </div>
@@ -789,104 +971,160 @@ function renderPlayers() {
 // ELIMINAR JOGADOR
 // ========================================
 
-document.getElementById("playersList").addEventListener("click", function (event) {
+const playersList =
+    document.getElementById("playersList");
 
-    const button = event.target.closest("[data-delete-player]");
+if (playersList) {
 
-    if (!button) return;
+    playersList.addEventListener(
+        "click",
+        function (event) {
 
-    const id = button.dataset.deletePlayer;
+            const button =
+                event.target.closest(
+                    "[data-delete-player]"
+                );
 
-    const index = players.findIndex(player => player.id === id);
+            if (!button) return;
 
-    if (index === -1) return;
+            const id =
+                button.dataset.deletePlayer;
 
-    if (!confirm("Tens a certeza de que queres eliminar este jogador?")) {
-        return;
-    }
+            const index =
+                players.findIndex(
+                    player => player.id === id
+                );
 
-    players.splice(index, 1);
+            if (index === -1) return;
 
-    // Se o jogador era capitão, retirar a função.
+            if (!confirm(
+                "Tens a certeza de que queres eliminar este jogador?"
+            )) {
 
-    teams.forEach(team => {
+                return;
 
-        if (team.captainId === id) {
-            team.captainId = null;
+            }
+
+            players.splice(index, 1);
+
+            teams.forEach(team => {
+
+                if (team.captainId === id) {
+
+                    team.captainId = null;
+
+                }
+
+            });
+
+            saveData();
+
+            renderAll();
+
         }
+    );
 
-    });
-
-    saveData();
-
-    renderAll();
-
-});
+}
 
 
 // ========================================
 // AGENDAR JOGO
 // ========================================
 
-const gameForm = document.getElementById("gameForm");
+const gameForm =
+    document.getElementById("gameForm");
 
-gameForm.addEventListener("submit", function (event) {
+if (gameForm) {
 
-    event.preventDefault();
+    gameForm.addEventListener(
+        "submit",
+        function (event) {
 
-    const homeId = document.getElementById("gameHome").value;
+            event.preventDefault();
 
-    const awayId = document.getElementById("gameAway").value;
+            const homeId =
+                document.getElementById(
+                    "gameHome"
+                ).value;
 
-    const date = document.getElementById("gameDate").value;
+            const awayId =
+                document.getElementById(
+                    "gameAway"
+                ).value;
 
-    const time = document.getElementById("gameTime").value;
+            const date =
+                document.getElementById(
+                    "gameDate"
+                ).value;
 
-    const field = document.getElementById("gameField").value.trim();
+            const time =
+                document.getElementById(
+                    "gameTime"
+                ).value;
 
-    if (!homeId || !awayId || !date || !time || !field) {
+            const field =
+                document.getElementById(
+                    "gameField"
+                ).value.trim();
 
-        alert("Preenche todos os campos.");
+            if (
+                !homeId ||
+                !awayId ||
+                !date ||
+                !time ||
+                !field
+            ) {
 
-        return;
+                alert(
+                    "Preenche todos os campos."
+                );
 
-    }
+                return;
 
-    if (homeId === awayId) {
+            }
 
-        alert("Uma equipa não pode jogar contra si própria.");
+            if (homeId === awayId) {
 
-        return;
+                alert(
+                    "Uma equipa não pode jogar contra si própria."
+                );
 
-    }
+                return;
 
-    games.push({
+            }
 
-        id: crypto.randomUUID(),
+            games.push({
 
-        homeId,
-        awayId,
+                id: crypto.randomUUID(),
 
-        date,
-        time,
-        field,
+                homeId,
+                awayId,
 
-        homeScore: null,
-        awayScore: null,
+                date,
+                time,
+                field,
 
-        status: "Agendado"
+                homeScore: null,
+                awayScore: null,
 
-    });
+                status: "Agendado"
 
-    saveData();
+            });
 
-    gameForm.reset();
+            saveData();
 
-    renderAll();
+            gameForm.reset();
 
-    alert("Jogo agendado com sucesso!");
+            renderAll();
 
-});
+            alert(
+                "Jogo agendado com sucesso!"
+            );
+
+        }
+    );
+
+}
 
 
 // ========================================
@@ -895,7 +1133,10 @@ gameForm.addEventListener("submit", function (event) {
 
 function renderGames() {
 
-    const container = document.getElementById("gamesList");
+    const container =
+        document.getElementById("gamesList");
+
+    if (!container) return;
 
     if (games.length === 0) {
 
@@ -911,50 +1152,90 @@ function renderGames() {
 
     }
 
-    const sortedGames = [...games].sort((a, b) => {
+    const sortedGames =
+        [...games].sort((a, b) => {
 
-        return new Date(`${a.date}T${a.time}`) -
-               new Date(`${b.date}T${b.time}`);
+            return new Date(
+                `${a.date}T${a.time}`
+            ) -
+            new Date(
+                `${b.date}T${b.time}`
+            );
 
-    });
+        });
 
-    container.innerHTML = sortedGames.map(game => {
+    container.innerHTML =
+        sortedGames.map(game => {
 
-        const home = teams.find(team => team.id === game.homeId);
+            const home = teams.find(
+                team => team.id === game.homeId
+            );
 
-        const away = teams.find(team => team.id === game.awayId);
+            const away = teams.find(
+                team => team.id === game.awayId
+            );
 
-        return `
+            return `
 
-            <div class="list-item">
+                <div class="list-item">
 
-                <div>
+                    <div>
 
-                    <strong>
-                        ${escapeHTML(home ? home.name : "Equipa removida")}
-                        ${game.homeScore !== null ? game.homeScore : "-"}
-                        :
-                        ${game.awayScore !== null ? game.awayScore : "-"}
-                        ${escapeHTML(away ? away.name : "Equipa removida")}
-                    </strong>
+                        <strong>
 
-                    <p>
-                        ${formatDate(game.date)}
-                        •
-                        ${escapeHTML(game.time)}
-                        •
-                        ${escapeHTML(game.field)}
-                    </p>
+                            ${
+                                escapeHTML(
+                                    home
+                                    ? home.name
+                                    : "Equipa removida"
+                                )
+                            }
 
-                    <p>${escapeHTML(game.status)}</p>
+                            ${
+                                game.homeScore !== null
+                                ? game.homeScore
+                                : "-"
+                            }
+
+                            :
+
+                            ${
+                                game.awayScore !== null
+                                ? game.awayScore
+                                : "-"
+                            }
+
+                            ${
+                                escapeHTML(
+                                    away
+                                    ? away.name
+                                    : "Equipa removida"
+                                )
+                            }
+
+                        </strong>
+
+                        <p>
+
+                            ${formatDate(game.date)}
+                            •
+                            ${escapeHTML(game.time)}
+                            •
+                            ${escapeHTML(game.field)}
+
+                        </p>
+
+                        <p>
+                            ${escapeHTML(game.status)}
+                        </p>
+
+                    </div>
 
                 </div>
 
-            </div>
+            `;
 
-        `;
-
-    }).join("");
+        }).join("");
 
     updateResultSelect();
 
@@ -967,25 +1248,36 @@ function renderGames() {
 
 function updateResultSelect() {
 
-    const select = document.getElementById("resultGame");
+    const select =
+        document.getElementById("resultGame");
+
+    if (!select) return;
 
     select.innerHTML = `
-        <option value="">Selecionar jogo</option>
+        <option value="">
+            Selecionar jogo
+        </option>
     `;
 
     games.forEach(game => {
 
-        const home = teams.find(team => team.id === game.homeId);
+        const home = teams.find(
+            team => team.id === game.homeId
+        );
 
-        const away = teams.find(team => team.id === game.awayId);
+        const away = teams.find(
+            team => team.id === game.awayId
+        );
 
         if (!home || !away) return;
 
-        const option = document.createElement("option");
+        const option =
+            document.createElement("option");
 
         option.value = game.id;
 
-        option.textContent = `${home.name} vs ${away.name} — ${formatDate(game.date)}`;
+        option.textContent =
+            `${home.name} vs ${away.name} — ${formatDate(game.date)}`;
 
         select.appendChild(option);
 
@@ -998,51 +1290,85 @@ function updateResultSelect() {
 // REGISTAR RESULTADO
 // ========================================
 
-const resultForm = document.getElementById("resultForm");
+const resultForm =
+    document.getElementById("resultForm");
 
-resultForm.addEventListener("submit", function (event) {
+if (resultForm) {
 
-    event.preventDefault();
+    resultForm.addEventListener(
+        "submit",
+        function (event) {
 
-    const gameId = document.getElementById("resultGame").value;
+            event.preventDefault();
 
-    const homeScore = Number(document.getElementById("homeScore").value);
+            const gameId =
+                document.getElementById(
+                    "resultGame"
+                ).value;
 
-    const awayScore = Number(document.getElementById("awayScore").value);
+            const homeScore =
+                Number(
+                    document.getElementById(
+                        "homeScore"
+                    ).value
+                );
 
-    if (!gameId || homeScore < 0 || awayScore < 0) {
+            const awayScore =
+                Number(
+                    document.getElementById(
+                        "awayScore"
+                    ).value
+                );
 
-        alert("Introduz um resultado válido.");
+            if (
+                !gameId ||
+                homeScore < 0 ||
+                awayScore < 0
+            ) {
 
-        return;
+                alert(
+                    "Introduz um resultado válido."
+                );
 
-    }
+                return;
 
-    const game = games.find(game => game.id === gameId);
+            }
 
-    if (!game) {
+            const game =
+                games.find(
+                    game => game.id === gameId
+                );
 
-        alert("Jogo não encontrado.");
+            if (!game) {
 
-        return;
+                alert(
+                    "Jogo não encontrado."
+                );
 
-    }
+                return;
 
-    game.homeScore = homeScore;
+            }
 
-    game.awayScore = awayScore;
+            game.homeScore = homeScore;
 
-    game.status = "Terminado";
+            game.awayScore = awayScore;
 
-    saveData();
+            game.status = "Terminado";
 
-    resultForm.reset();
+            saveData();
 
-    renderAll();
+            resultForm.reset();
 
-    alert("Resultado registado com sucesso!");
+            renderAll();
 
-});
+            alert(
+                "Resultado registado com sucesso!"
+            );
+
+        }
+    );
+
+}
 
 
 // ========================================
@@ -1067,10 +1393,15 @@ function formatDate(date) {
 function escapeHTML(value) {
 
     return String(value)
+
         .replaceAll("&", "&amp;")
+
         .replaceAll("<", "&lt;")
+
         .replaceAll(">", "&gt;")
+
         .replaceAll('"', "&quot;")
+
         .replaceAll("'", "&#039;");
 
 }
