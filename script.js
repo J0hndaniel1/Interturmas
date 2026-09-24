@@ -413,8 +413,133 @@ function renderTeams() {
         `;
 
         return;
+    }
+
+    container.innerHTML = teams.map(team => {
+
+        const teamPlayers = players.filter(
+            player => player.teamId === team.id
+        );
+
+        const captain = teamPlayers.find(
+            player => player.id === team.captainId
+        );
+
+        return `
+
+            <div class="content-card">
+
+                <h3>${escapeHTML(team.name)}</h3>
+
+                <p>Sigla: ${escapeHTML(team.short)}</p>
+
+                <p>
+                    Jogadores inscritos: ${teamPlayers.length}
+                </p>
+
+                <div class="form-group">
+
+                    <label>
+                        Capitão da equipa
+                    </label>
+
+                    <select
+                        class="captain-select"
+                        data-team-id="${team.id}"
+                    >
+
+                        <option value="">
+                            Selecionar capitão
+                        </option>
+
+                        ${teamPlayers.map(player => `
+
+                            <option
+                                value="${player.id}"
+                                ${player.id === team.captainId ? "selected" : ""}
+                            >
+
+                                ${escapeHTML(player.name)}
+                                — Nº ${player.number}
+
+                            </option>
+
+                        `).join("")}
+
+                    </select>
+
+                </div>
+
+                <p>
+                    Capitão atual:
+                    <strong>
+                        ${captain ? escapeHTML(captain.name) : "Nenhum"}
+                    </strong>
+                </p>
+
+                <button
+                    class="delete-btn"
+                    data-delete-team="${team.id}"
+                >
+                    Eliminar equipa
+                </button>
+
+            </div>
+
+        `;
+
+    }).join("");
+
+}
+
+document.getElementById("teamsList").addEventListener(
+    "change",
+    function (event) {
+
+        if (!event.target.classList.contains("captain-select")) {
+            return;
+        }
+
+        const teamId = event.target.dataset.teamId;
+        const playerId = event.target.value;
+
+        const team = teams.find(
+            team => team.id === teamId
+        );
+
+        if (!team) return;
+
+        // Se não houver capitão selecionado, retirar a função.
+
+        if (playerId === "") {
+
+            team.captainId = null;
+
+        } else {
+
+            const player = players.find(
+                player =>
+                    player.id === playerId &&
+                    player.teamId === teamId
+            );
+
+            if (!player) {
+
+                alert("Este jogador não pertence a esta equipa.");
+
+                return;
+            }
+
+            team.captainId = playerId;
+
+        }
+
+        saveData();
+
+        renderTeams();
 
     }
+);
 
     container.innerHTML = teams.map(team => `
 
