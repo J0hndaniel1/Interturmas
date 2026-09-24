@@ -523,3 +523,22 @@ button {
     }
 
 }
+
+/* GESTÃO DE CAPITÃES */
+
+.captain-select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+
+    background: #0b1527;
+    color: white;
+
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.captain-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
