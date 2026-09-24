@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Interturmas 2026</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+
+  <div class="logo">
+    INTERTURMAS
+    <small>CAMPEONATO 2026</small>
+  </div>
+
+<button id="menuBtn">☰</button>
+
+  <nav id="nav">
+
+```
+<button class="nav-link active" data-page="inicio">
+  Início
+</button>
+
+<button class="nav-link" data-page="campeonatos">
+  Campeonatos
+</button>
+
+<button class="nav-link" data-page="calendario">
+  Calendário
+</button>
+
+<button class="nav-link" data-page="jogos">
+  Jogos
+</button>
+
+<button class="nav-link" data-page="classificacao">
+  Classificação
+</button>
+
+<button class="nav-link" data-page="artilharia">
+  Artilharia
+</button>
+
+<button class="nav-link" data-page="equipas">
+  Equipas
+</button>
+
+<button class="nav-link" data-page="jogadores">
+  Jogadores
+</button>
+
+<button class="nav-link" data-page="votacao">
+  Melhor Jogador
+</button>
+```
+
+  </nav>
+
+</header>
+
+<main>
+
+  <!-- =====================================================
+       INÍCIO
+  ====================================================== -->
+
+  <section class="page active" id="inicio">
+
+```
+<div class="hero">
+
+  <small>CAMPEONATO ESCOLAR</small>
+
+  <h1>
+    INTERTURMAS<br>
+    2026
+  </h1>
+
+  <p>
+    Acompanha jogos, equipas, jogadores,
+    classificação, artilharia e muito mais.
+  </p>
+
+  <button data-go="campeonatos">
+    Ver campeonatos
+  </button>
+
+</div>
+
+
+<div class="stats-grid">
+
+  <div class="stat-card">
+    <small>Equipas</small>
+    <strong id="totalTeams">0</strong>
+  </div>
+
+  <div class="stat-card">
+    <small>Jogadores</small>
+    <strong id="totalPlayers">0</strong>
+  </div>
+
+  <div class="stat-card">
+    <small>Jogos</small>
+    <strong id="totalGames">0</strong>
+  </div>
+
+  <div class="stat-card">
+    <small>Golos</small>
+    <strong id="totalGoals">0</strong>
+  </div>
+
+</div>
+
+
+<div class="content-card">
+
+  <h2>Resultados recentes</h2>
+
+  <div id="recentResults"></div>
+
+</div>
+
+
+<div class="content-card">
+
+  <h2>Artilheiros</h2>
+
+  <div id="topScorers"></div>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       CAMPEONATOS
+  ====================================================== -->
+
+  <section class="page" id="campeonatos">
+
+```
+<div class="page-header">
+
+  <small>GESTÃO DO TORNEIO</small>
+
+  <h1>Campeonatos</h1>
+
+  <p>
+    Cria e configura os campeonatos do Interturmas.
+  </p>
+
+</div>
+
+
+<!-- CRIAR CAMPEONATO -->
+
+<div class="team-form">
+
+  <h2>Criar campeonato</h2>
+
+
+  <div class="form-group">
+
+    <label for="championshipName">
+      Nome do campeonato
+    </label>
+
+    <input
+      type="text"
+      id="championshipName"
+      placeholder="Ex: Interturmas 2026"
+      maxlength="60"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="championshipYear">
+      Ano
+    </label>
+
+    <input
+      type="number"
+      id="championshipYear"
+      value="2026"
+      min="2020"
+      max="2100"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="championshipFormat">
+      Formato do campeonato
+    </label>
+
+    <select id="championshipFormat">
+
+      <option value="">
+        Selecionar formato
+      </option>
+
+      <option value="knockout">
+        Mata-mata — começa nos oitavos
+      </option>
+
+      <option value="groups_knockout">
+        Classificação + Mata-mata
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div
+    id="groupsOptions"
+    class="form-group"
+    style="display: none;"
+  >
+
+    <label for="numberOfGroups">
+      Número de grupos
+    </label>
+
+    <select id="numberOfGroups">
+
+      <option value="2">
+        2 grupos
+      </option>
+
+      <option value="4">
+        4 grupos
+      </option>
+
+      <option value="8">
+        8 grupos
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label>
+      Equipas participantes
+    </label>
+
+    <div
+      id="championshipTeams"
+      class="checkbox-list"
+    ></div>
+
+  </div>
+
+
+  <button id="addChampionshipBtn">
+    Criar campeonato
+  </button>
+
+</div>
+
+
+<!-- CAMPEONATOS CRIADOS -->
+
+<div class="content-card">
+
+  <h2>Campeonatos criados</h2>
+
+  <div id="championshipsGrid"></div>
+
+</div>
+
+
+<!-- CAMPEONATO ATIVO -->
+
+<div class="content-card">
+
+  <h2>Campeonato selecionado</h2>
+
+  <div id="activeChampionship"></div>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       CALENDÁRIO
+  ====================================================== -->
+
+  <section class="page" id="calendario">
+
+```
+<div class="page-header">
+
+  <small>PROGRAMAÇÃO</small>
+
+  <h1>Calendário</h1>
+
+  <p>
+    Define a data, hora, campo e fase de cada jogo.
+  </p>
+
+</div>
+
+
+<!-- CRIAR JOGO -->
+
+<div class="team-form">
+
+  <h2>Agendar jogo</h2>
+
+
+  <div class="form-group">
+
+    <label for="gameChampionship">
+      Campeonato
+    </label>
+
+    <select id="gameChampionship">
+
+      <option value="">
+        Selecionar campeonato
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gamePhase">
+      Fase
+    </label>
+
+    <select id="gamePhase">
+
+      <option value="Grupos">
+        Fase de grupos
+      </option>
+
+      <option value="Oitavos">
+        Oitavos de final
+      </option>
+
+      <option value="Quartos">
+        Quartos de final
+      </option>
+
+      <option value="Semifinais">
+        Semifinais
+      </option>
+
+      <option value="Final">
+        Final
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gameHomeTeam">
+      Equipa da casa
+    </label>
+
+    <select id="gameHomeTeam">
+
+      <option value="">
+        Selecionar equipa
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gameAwayTeam">
+      Equipa visitante
+    </label>
+
+    <select id="gameAwayTeam">
+
+      <option value="">
+        Selecionar equipa
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gameDate">
+      Data
+    </label>
+
+    <input
+      type="date"
+      id="gameDate"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gameTime">
+      Hora
+    </label>
+
+    <input
+      type="time"
+      id="gameTime"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="gameField">
+      Campo / Local
+    </label>
+
+    <input
+      type="text"
+      id="gameField"
+      placeholder="Ex: Campo principal"
+      maxlength="60"
+    >
+
+  </div>
+
+
+  <button id="addGameBtn">
+    Agendar jogo
+  </button>
+
+</div>
+
+
+<!-- CALENDÁRIO -->
+
+<div class="content-card">
+
+  <h2>Próximos jogos</h2>
+
+  <div id="calendarGames"></div>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       JOGOS
+  ====================================================== -->
+
+  <section class="page" id="jogos">
+
+```
+<div class="page-header">
+
+  <small>PARTIDAS</small>
+
+  <h1>Jogos</h1>
+
+  <p>
+    Consulta os jogos e regista os resultados.
+  </p>
+
+</div>
+
+
+<div class="game-filter">
+
+  <select id="gameFilter">
+
+    <option value="todos">
+      Todos os jogos
+    </option>
+
+    <option value="proximo">
+      Próximos
+    </option>
+
+    <option value="resultado">
+      Resultados
+    </option>
+
+  </select>
+
+</div>
+
+
+<div id="gamesList"></div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       CLASSIFICAÇÃO
+  ====================================================== -->
+
+  <section class="page" id="classificacao">
+
+```
+<div class="page-header">
+
+  <small>FASE DE GRUPOS</small>
+
+  <h1>Classificação</h1>
+
+  <p>
+    Tabela de classificação das equipas.
+  </p>
+
+</div>
+
+
+<div class="table-container">
+
+  <table>
+
+    <thead>
+
+      <tr>
+
+        <th>#</th>
+        <th>Equipa</th>
+        <th>J</th>
+        <th>V</th>
+        <th>E</th>
+        <th>D</th>
+        <th>GM</th>
+        <th>GS</th>
+        <th>SG</th>
+        <th>PTS</th>
+
+      </tr>
+
+    </thead>
+
+    <tbody id="standings"></tbody>
+
+  </table>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       CHAVEAMENTO
+  ====================================================== -->
+
+  <section class="page" id="chaveamento">
+
+```
+<div class="page-header">
+
+  <small>FASE FINAL</small>
+
+  <h1>Chaveamento</h1>
+
+  <p>
+    Acompanha o caminho das equipas até à final.
+  </p>
+
+</div>
+
+
+<div class="bracket">
+
+  <div class="bracket-round">
+
+    <h2>Oitavos</h2>
+
+    <div id="roundOf16"></div>
+
+  </div>
+
+
+  <div class="bracket-round">
+
+    <h2>Quartos</h2>
+
+    <div id="quarterfinals"></div>
+
+  </div>
+
+
+  <div class="bracket-round">
+
+    <h2>Semifinais</h2>
+
+    <div id="semifinals"></div>
+
+  </div>
+
+
+  <div class="bracket-round">
+
+    <h2>Final</h2>
+
+    <div id="final"></div>
+
+  </div>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       ARTILHARIA
+  ====================================================== -->
+
+  <section class="page" id="artilharia">
+
+```
+<div class="page-header">
+
+  <small>ESTATÍSTICAS</small>
+
+  <h1>Artilharia</h1>
+
+  <p>
+    Jogadores com mais golos no campeonato.
+  </p>
+
+</div>
+
+
+<div class="table-container">
+
+  <table>
+
+    <thead>
+
+      <tr>
+
+        <th>#</th>
+        <th>Jogador</th>
+        <th>Equipa</th>
+        <th>Golos</th>
+
+      </tr>
+
+    </thead>
+
+    <tbody id="scorers"></tbody>
+
+  </table>
+
+</div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       EQUIPAS
+  ====================================================== -->
+
+  <section class="page" id="equipas">
+
+```
+<div class="page-header">
+
+  <small>PARTICIPANTES</small>
+
+  <h1>Equipas</h1>
+
+  <p>
+    Regista e administra as equipas participantes.
+  </p>
+
+</div>
+
+
+<!-- CADASTRO DE EQUIPA -->
+
+<div class="team-form">
+
+  <h2>Cadastrar equipa</h2>
+
+
+  <div class="form-group">
+
+    <label for="teamName">
+      Nome da equipa
+    </label>
+
+    <input
+      type="text"
+      id="teamName"
+      placeholder="Ex: 10.º A"
+      maxlength="40"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="teamShort">
+      Sigla
+    </label>
+
+    <input
+      type="text"
+      id="teamShort"
+      placeholder="Ex: 10A"
+      maxlength="8"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="teamPhoto">
+      Foto / Logo da equipa
+    </label>
+
+    <input
+      type="file"
+      id="teamPhoto"
+      accept="image/*"
+    >
+
+  </div>
+
+
+  <div
+    id="teamPhotoPreview"
+    class="image-preview"
+  ></div>
+
+
+  <button id="addTeamBtn">
+    Cadastrar equipa
+  </button>
+
+</div>
+
+
+<!-- LISTA DE EQUIPAS -->
+
+<div
+  class="teams-grid"
+  id="teamsGrid"
+></div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       JOGADORES
+  ====================================================== -->
+
+  <section class="page" id="jogadores">
+
+```
+<div class="page-header">
+
+  <small>PLANTÉIS</small>
+
+  <h1>Jogadores</h1>
+
+  <p>
+    Regista os jogadores e consulta os seus perfis.
+  </p>
+
+</div>
+
+
+<!-- CADASTRO DE JOGADOR -->
+
+<div class="team-form">
+
+  <h2>Cadastrar jogador</h2>
+
+
+  <div class="form-group">
+
+    <label for="playerName">
+      Nome completo
+    </label>
+
+    <input
+      type="text"
+      id="playerName"
+      placeholder="Ex: João Manuel"
+      maxlength="60"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="playerNumber">
+      Número da camisola
+    </label>
+
+    <input
+      type="number"
+      id="playerNumber"
+      placeholder="Ex: 10"
+      min="1"
+      max="99"
+    >
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="playerPosition">
+      Posição
+    </label>
+
+    <select id="playerPosition">
+
+      <option value="">
+        Selecionar posição
+      </option>
+
+      <option value="Goleiro">
+        Goleiro
+      </option>
+
+      <option value="Defesa">
+        Defesa
+      </option>
+
+      <option value="Meio-campo">
+        Meio-campo
+      </option>
+
+      <option value="Avançado">
+        Avançado
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="playerTeam">
+      Equipa
+    </label>
+
+    <select id="playerTeam">
+
+      <option value="">
+        Selecionar equipa
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="form-group">
+
+    <label for="playerPhoto">
+      Foto de perfil
+    </label>
+
+    <input
+      type="file"
+      id="playerPhoto"
+      accept="image/*"
+    >
+
+  </div>
+
+
+  <div
+    id="playerPhotoPreview"
+    class="image-preview"
+  ></div>
+
+
+  <button id="addPlayerBtn">
+    Cadastrar jogador
+  </button>
+
+</div>
+
+
+<!-- LISTA DE JOGADORES -->
+
+<div
+  class="players-grid"
+  id="playersGrid"
+></div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       PERFIL DO JOGADOR
+  ====================================================== -->
+
+  <section class="page" id="perfil-jogador">
+
+```
+<div class="page-header">
+
+  <small>PERFIL</small>
+
+  <h1>Perfil do jogador</h1>
+
+</div>
+
+
+<div
+  id="playerProfile"
+  class="player-profile"
+></div>
+```
+
+  </section>
+
+  <!-- =====================================================
+       VOTAÇÃO
+  ====================================================== -->
+
+  <section class="page" id="votacao">
+
+```
+<div class="page-header">
+
+  <small>PRÉMIO INDIVIDUAL</small>
+
+  <h1>Melhor jogador</h1>
+
+  <p>
+    Vota no jogador que consideras o destaque
+    do Interturmas.
+  </p>
+
+</div>
+
+
+<div class="content-card">
+
+  <h2>Votação</h2>
+
+  <p>
+    Cada navegador poderá registar um voto
+    no protótipo atual.
+  </p>
+
+  <div
+    id="votingGrid"
+    class="players-grid"
+  ></div>
+
+</div>
+
+
+<div class="content-card">
+
+  <h2>Resultado da votação</h2>
+
+  <div id="votingResults"></div>
+
+</div>
+```
+
+  </section>
+
+</main>
+
+<footer>
+
+  <p>
+    Interturmas 2026 — Sistema de gestão do campeonato escolar
+  </p>
+
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
