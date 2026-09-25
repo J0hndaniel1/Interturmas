@@ -1,238 +1,127 @@
-// =====================================================
+// ========================================
 // DADOS
-// =====================================================
+// ========================================
 
-const teams =
-    JSON.parse(localStorage.getItem("teams")) || [];
-
-const players =
-    JSON.parse(localStorage.getItem("players")) || [];
-
-const games =
-    JSON.parse(localStorage.getItem("games")) || [];
-
-const championships =
-    JSON.parse(localStorage.getItem("championships")) || [];
+const teams = JSON.parse(localStorage.getItem("teams")) || [];
+const players = JSON.parse(localStorage.getItem("players")) || [];
+const games = JSON.parse(localStorage.getItem("games")) || [];
+const championships = JSON.parse(localStorage.getItem("championships")) || [];
 
 
-// =====================================================
-// ELEMENTOS PRINCIPAIS
-// =====================================================
+// Normaliza nomes de turmas para impedir duplicados como "9D",
+// "9.º D" e "9.ª Classe D", mantendo turmas diferentes separadas.
+function normalizeTeamName(value) {
+    return String(value || "")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\b(classe|class|turma)\b/g, "")
+        .replace(/\b(\d+)\s*(?:[ºª°o]?\s*)/g, "$1")
+        .replace(/[^a-z0-9]/g, "")
+        .trim();
+}
 
-const homePage =
-    document.getElementById("homePage");
+function getPlayerGoalsFromFinishedGames() {
+    const totals = new Map();
+    games.filter(g => g.status === "Terminado").forEach(game => {
+        (game.scorers || []).forEach(item => {
+            if (!item.playerId || !Number(item.goals)) return;
+            totals.set(item.playerId, (totals.get(item.playerId) || 0) + Number(item.goals));
+        });
+    });
+    return totals;
+}
 
-const visitorPage =
-    document.getElementById("visitorPage");
-
-const loginPage =
-    document.getElementById("loginPage");
-
-const adminPanel =
-    document.getElementById("adminPanel");
-
-const loginForm =
-    document.getElementById("loginForm");
-
-const loginMessage =
-    document.getElementById("loginMessage");
-
-const logoutBtn =
-    document.getElementById("logoutBtn");
+function parseScorers(text, teamId) {
+    if (!text.trim()) return [];
+    const result = [];
+    for (const part of text.split(",")) {
+        const [rawName, rawGoals] = part.split("=").map(x => x.trim());
+        const goals = Number(rawGoals);
+        const player = players.find(p => p.teamId === teamId && p.name.toLowerCase() === (rawName || "").toLowerCase());
+        if (!player || !Number.isInteger(goals) || goals < 1) throw new Error(`Artilheiro inválido: ${rawName}. Usa Nome=Golos e seleciona um jogador dessa equipa.`);
+        const existing = result.find(x => x.playerId === player.id);
+        if (existing) existing.goals += goals;
+        else result.push({ playerId: player.id, goals });
+    }
+    return result;
+}
 
 
-// =====================================================
+// ========================================
+// ELEMENTOS
+// ========================================
+
+const loginPage = document.getElementById("loginPage");
+const adminPanel = document.getElementById("adminPanel");
+
+const loginForm = document.getElementById("loginForm");
+const loginMessage = document.getElementById("loginMessage");
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+
+// ========================================
 // LOGIN DEMONSTRATIVO
-// =====================================================
+// ========================================
+
+// Credenciais atuais do protótipo:
+//
+// E-mail: listaM@adm.com
+// Palavra-passe: ListaM
+//
+// IMPORTANTE:
+// Este login ainda é apenas para o protótipo.
+// Mais tarde vamos substituir pelo Supabase Auth.
 
 const DEMO_EMAIL = "listaM@adm.com";
-
 const DEMO_PASSWORD = "ListaM";
 
 
-// =====================================================
-// NAVEGAÇÃO PRINCIPAL
-// =====================================================
-
-const visitorModeBtn =
-    document.getElementById("visitorModeBtn");
-
-const adminModeBtn =
-    document.getElementById("adminModeBtn");
-
-const backHomeFromVisitor =
-    document.getElementById("backHomeFromVisitor");
-
-const backHomeFromLogin =
-    document.getElementById("backHomeFromLogin");
-
-
-function hideAllMainModes() {
-
-    if (homePage) {
-        homePage.classList.add("hidden");
-    }
-
-    if (visitorPage) {
-        visitorPage.classList.add("hidden");
-    }
-
-    if (loginPage) {
-        loginPage.classList.add("hidden");
-    }
-
-    if (adminPanel) {
-        adminPanel.classList.add("hidden");
-    }
-
-}
-
-
-// =====================================================
-// MODO VISITANTE
-// =====================================================
-
-if (visitorModeBtn) {
-
-    visitorModeBtn.addEventListener(
-        "click",
-        function () {
-
-            hideAllMainModes();
-
-            visitorPage.classList.remove("hidden");
-
-            renderVisitorAll();
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// MODO ADMINISTRADOR
-// =====================================================
-
-if (adminModeBtn) {
-
-    adminModeBtn.addEventListener(
-        "click",
-        function () {
-
-            hideAllMainModes();
-
-            loginPage.classList.remove("hidden");
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// VOLTAR AO INÍCIO
-// =====================================================
-
-if (backHomeFromVisitor) {
-
-    backHomeFromVisitor.addEventListener(
-        "click",
-        function () {
-
-            hideAllMainModes();
-
-            homePage.classList.remove("hidden");
-
-        }
-    );
-
-}
-
-
-if (backHomeFromLogin) {
-
-    backHomeFromLogin.addEventListener(
-        "click",
-        function () {
-
-            hideAllMainModes();
-
-            homePage.classList.remove("hidden");
-
-            if (loginForm) {
-                loginForm.reset();
-            }
-
-            if (loginMessage) {
-                loginMessage.textContent = "";
-            }
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// LOGIN
-// =====================================================
+// ========================================
+// INICIAR SESSÃO
+// ========================================
 
 if (loginForm) {
 
-    loginForm.addEventListener(
-        "submit",
-        function (event) {
+    loginForm.addEventListener("submit", function (event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
-            const emailInput =
-                document.getElementById("email");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
 
-            const passwordInput =
-                document.getElementById("password");
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
 
-            const email =
-                emailInput.value.trim();
+        if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
 
-            const password =
-                passwordInput.value;
+            sessionStorage.setItem("adminLoggedIn", "true");
 
-            if (
-                email === DEMO_EMAIL &&
-                password === DEMO_PASSWORD
-            ) {
+            loginMessage.textContent = "";
 
-                sessionStorage.setItem(
-                    "adminLoggedIn",
-                    "true"
-                );
+            showAdminPanel();
 
-                loginMessage.textContent = "";
+        } else {
 
-                showAdminPanel();
-
-            } else {
-
-                loginMessage.textContent =
-                    "E-mail ou palavra-passe incorretos.";
-
-            }
+            loginMessage.textContent =
+                "E-mail ou palavra-passe incorretos.";
 
         }
-    );
+
+    });
 
 }
 
 
-// =====================================================
-// MOSTRAR PAINEL ADMIN
-// =====================================================
+// ========================================
+// MOSTRAR PAINEL
+// ========================================
 
 function showAdminPanel() {
 
-    hideAllMainModes();
+    if (!loginPage || !adminPanel) return;
 
+    loginPage.classList.add("hidden");
     adminPanel.classList.remove("hidden");
 
     renderAll();
@@ -240,73 +129,65 @@ function showAdminPanel() {
 }
 
 
-// =====================================================
-// LOGOUT
-// =====================================================
+// ========================================
+// TERMINAR SESSÃO
+// ========================================
 
 if (logoutBtn) {
 
-    logoutBtn.addEventListener(
-        "click",
-        function () {
+    logoutBtn.addEventListener("click", function () {
 
-            sessionStorage.removeItem(
-                "adminLoggedIn"
-            );
+        sessionStorage.removeItem("adminLoggedIn");
 
-            hideAllMainModes();
+        adminPanel.classList.add("hidden");
+        loginPage.classList.remove("hidden");
 
-            homePage.classList.remove("hidden");
+        loginForm.reset();
 
-            if (loginForm) {
-                loginForm.reset();
-            }
+        loginMessage.textContent = "";
 
-            if (loginMessage) {
-                loginMessage.textContent = "";
-            }
-
-        }
-    );
+    });
 
 }
 
 
-// =====================================================
-// NAVEGAÇÃO ADMIN
-// =====================================================
+// ========================================
+// VERIFICAR SESSÃO
+// ========================================
 
-const navButtons =
-    document.querySelectorAll(".nav-btn");
+if (sessionStorage.getItem("adminLoggedIn") === "true") {
+
+    showAdminPanel();
+
+}
+
+
+// ========================================
+// NAVEGAÇÃO
+// ========================================
+
+const navButtons = document.querySelectorAll(".nav-btn");
 
 navButtons.forEach(button => {
 
-    button.addEventListener(
-        "click",
-        function () {
+    button.addEventListener("click", function () {
 
-            showPage(button.dataset.page);
+        showPage(button.dataset.page);
 
-        }
-    );
+    });
 
 });
 
 
 function showPage(pageId) {
 
-    document
-        .querySelectorAll(".admin-page")
-        .forEach(page => {
+    document.querySelectorAll(".admin-page").forEach(page => {
 
-            page.classList.add("hidden");
+        page.classList.add("hidden");
 
-        });
+    });
 
-
-    const page =
-        document.getElementById(pageId);
-
+    const page = document.getElementById(pageId);
 
     if (page) {
 
@@ -314,14 +195,11 @@ function showPage(pageId) {
 
     }
 
-
     navButtons.forEach(button => {
 
         button.classList.remove("active");
 
-        if (
-            button.dataset.page === pageId
-        ) {
+        if (button.dataset.page === pageId) {
 
             button.classList.add("active");
 
@@ -329,27 +207,18 @@ function showPage(pageId) {
 
     });
 
-
     const titles = {
 
         dashboard: "Dashboard",
-
         campeonatos: "Campeonatos",
-
         equipas: "Equipas",
-
         jogadores: "Jogadores",
-
         jogos: "Jogos",
-
         resultados: "Resultados"
 
     };
 
-
-    const pageTitle =
-        document.getElementById("pageTitle");
-
+    const pageTitle = document.getElementById("pageTitle");
 
     if (pageTitle) {
 
@@ -361,226 +230,131 @@ function showPage(pageId) {
 }
 
 
-// =====================================================
-// ACESSO RÁPIDO ADMIN
-// =====================================================
+// ========================================
+// ACESSO RÁPIDO
+// ========================================
 
-document
-    .querySelectorAll("[data-open]")
-    .forEach(button => {
+document.querySelectorAll("[data-open]").forEach(button => {
 
-        button.addEventListener(
-            "click",
-            function () {
+    button.addEventListener("click", function () {
 
-                showPage(
-                    button.dataset.open
-                );
-
-            }
-        );
+        showPage(button.dataset.open);
 
     });
 
+});
 
-// =====================================================
+
+// ========================================
 // GUARDAR DADOS
-// =====================================================
+// ========================================
 
 function saveData() {
 
-    localStorage.setItem(
-        "teams",
-        JSON.stringify(teams)
-    );
-
-    localStorage.setItem(
-        "players",
-        JSON.stringify(players)
-    );
-
-    localStorage.setItem(
-        "games",
-        JSON.stringify(games)
-    );
-
-    localStorage.setItem(
-        "championships",
-        JSON.stringify(championships)
-    );
+    localStorage.setItem("teams", JSON.stringify(teams));
+    localStorage.setItem("players", JSON.stringify(players));
+    localStorage.setItem("games", JSON.stringify(games));
+    localStorage.setItem("championships", JSON.stringify(championships));
 
 }
 
 
-// =====================================================
-// ESTATÍSTICAS ADMIN
-// =====================================================
+// ========================================
+// ATUALIZAR ESTATÍSTICAS
+// ========================================
 
 function updateStats() {
 
-    const activeGames =
-        games.filter(
-            game => game.status !== "Terminado"
-        );
+    document.getElementById("totalTeams").textContent = teams.length;
 
+    document.getElementById("totalPlayers").textContent = players.length;
 
-    const totalTeams =
-        document.getElementById("totalTeams");
+    document.getElementById("totalGames").textContent =
+        games.filter(game => game.status !== "Terminado").length;
 
-    const totalPlayers =
-        document.getElementById("totalPlayers");
-
-    const totalGames =
-        document.getElementById("totalGames");
-
-    const totalChampionships =
-        document.getElementById("totalChampionships");
-
-
-    if (totalTeams) {
-        totalTeams.textContent =
-            teams.length;
-    }
-
-    if (totalPlayers) {
-        totalPlayers.textContent =
-            players.length;
-    }
-
-    if (totalGames) {
-        totalGames.textContent =
-            activeGames.length;
-    }
-
-    if (totalChampionships) {
-        totalChampionships.textContent =
-            championships.length;
-    }
+    document.getElementById("totalChampionships").textContent =
+        championships.length;
 
 }
 
 
-// =====================================================
-// CAMPEONATOS
-// =====================================================
+// ========================================
+// CRIAR CAMPEONATO
+// ========================================
 
 const championshipForm =
-    document.getElementById(
-        "championshipForm"
-    );
-
+    document.getElementById("championshipForm");
 
 if (championshipForm) {
 
-    championshipForm.addEventListener(
-        "submit",
-        function (event) {
+    championshipForm.addEventListener("submit", function (event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
+        const name =
+            document.getElementById("championshipName").value.trim();
 
-            const name =
-                document
-                    .getElementById(
-                        "championshipName"
-                    )
-                    .value
-                    .trim();
+        const year =
+            document.getElementById("championshipYear").value;
 
+        const format =
+            document.getElementById("championshipFormat").value;
 
-            const year =
-                document.getElementById(
-                    "championshipYear"
-                ).value;
+        if (!name || !year || !format) {
 
+            alert("Preenche todos os campos.");
 
-            const format =
-                document.getElementById(
-                    "championshipFormat"
-                ).value;
-
-
-            if (
-                !name ||
-                !year ||
-                !format
-            ) {
-
-                alert(
-                    "Preenche todos os campos."
-                );
-
-                return;
-
-            }
-
-
-            const exists =
-                championships.some(
-                    championship =>
-                        championship.name
-                            .toLowerCase() ===
-                        name.toLowerCase()
-                );
-
-
-            if (exists) {
-
-                alert(
-                    "Já existe um campeonato com esse nome."
-                );
-
-                return;
-
-            }
-
-
-            championships.push({
-
-                id: crypto.randomUUID(),
-
-                name,
-
-                year,
-
-                format,
-
-                status: "ativo"
-
-            });
-
-
-            saveData();
-
-            championshipForm.reset();
-
-            renderAll();
-
-
-            alert(
-                "Campeonato criado com sucesso!"
-            );
+            return;
 
         }
-    );
+
+        const exists = championships.some(championship =>
+            championship.name.toLowerCase() === name.toLowerCase()
+        );
+
+        if (exists) {
+
+            alert("Já existe um campeonato com esse nome.");
+
+            return;
+
+        }
+
+        championships.push({
+
+            id: crypto.randomUUID(),
+
+            name,
+            year,
+            format,
+
+            status: "ativo"
+
+        });
+
+        saveData();
+
+        championshipForm.reset();
+
+        renderAll();
+
+        alert("Campeonato criado com sucesso!");
+
+    });
 
 }
 
 
-// =====================================================
+// ========================================
 // MOSTRAR CAMPEONATOS
-// =====================================================
+// ========================================
 
 function renderChampionships() {
 
     const container =
-        document.getElementById(
-            "championshipsList"
-        );
-
+        document.getElementById("championshipsList");
 
     if (!container) return;
-
 
     if (championships.length === 0) {
 
@@ -594,64 +368,48 @@ function renderChampionships() {
 
     }
 
+    container.innerHTML = championships.map(championship => `
 
-    container.innerHTML =
-        championships
-            .map(championship => `
+        <div class="list-item">
 
-                <div class="list-item">
+            <div>
 
-                    <div>
+                <strong>
+                    ${escapeHTML(championship.name)}
+                </strong>
 
-                        <strong>
-                            ${escapeHTML(
-                                championship.name
-                            )}
-                        </strong>
+                <p>
+                    ${escapeHTML(String(championship.year))}
+                    •
+                    ${
+                        championship.format === "knockout"
+                        ? "Mata-mata"
+                        : "Grupos + Mata-mata"
+                    }
+                </p>
 
-                        <p>
-                            ${escapeHTML(
-                                String(
-                                    championship.year
-                                )
-                            )}
+            </div>
 
-                            •
+            <button
+                class="delete-btn"
+                data-delete-championship="${championship.id}"
+            >
+                Eliminar
+            </button>
 
-                            ${
-                                championship.format ===
-                                "knockout"
-                                    ? "Mata-mata"
-                                    : "Grupos + Mata-mata"
-                            }
-                        </p>
+        </div>
 
-                    </div>
-
-                    <button
-                        class="delete-btn"
-                        data-delete-championship="${championship.id}"
-                    >
-                        Eliminar
-                    </button>
-
-                </div>
-
-            `)
-            .join("");
+    `).join("");
 
 }
 
 
-// =====================================================
+// ========================================
 // ELIMINAR CAMPEONATO
-// =====================================================
+// ========================================
 
 const championshipsList =
-    document.getElementById(
-        "championshipsList"
-    );
-
+    document.getElementById("championshipsList");
 
 if (championshipsList) {
 
@@ -664,14 +422,10 @@ if (championshipsList) {
                     "[data-delete-championship]"
                 );
 
-
             if (!button) return;
 
-
             const id =
-                button.dataset
-                    .deleteChampionship;
-
+                button.dataset.deleteChampionship;
 
             const index =
                 championships.findIndex(
@@ -679,26 +433,17 @@ if (championshipsList) {
                         championship.id === id
                 );
 
-
             if (index === -1) return;
 
-
-            if (
-                !confirm(
-                    "Tens a certeza de que queres eliminar este campeonato?"
-                )
-            ) {
+            if (!confirm(
+                "Tens a certeza de que queres eliminar este campeonato?"
+            )) {
 
                 return;
 
             }
 
-
-            championships.splice(
-                index,
-                1
-            );
-
+            championships.splice(index, 1);
 
             saveData();
 
@@ -710,221 +455,83 @@ if (championshipsList) {
 }
 
 
-// =====================================================
-// EQUIPAS
-// =====================================================
+// ========================================
+// CADASTRAR EQUIPA
+// ========================================
 
 const teamForm =
-    document.getElementById(
-        "teamForm"
-    );
-
+    document.getElementById("teamForm");
 
 if (teamForm) {
 
-    teamForm.addEventListener(
-        "submit",
-        function (event) {
+    teamForm.addEventListener("submit", function (event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
+        const name =
+            document.getElementById("teamName").value.trim();
 
-            const name =
-                document
-                    .getElementById(
-                        "teamName"
-                    )
-                    .value
-                    .trim();
+        const short =
+            document.getElementById("teamShort").value.trim();
 
+        if (!name || !short) {
 
-            const short =
-                document
-                    .getElementById(
-                        "teamShort"
-                    )
-                    .value
-                    .trim();
+            alert("Preenche todos os campos.");
 
+            return;
 
-            if (!name || !short) {
+        }
 
-                alert(
-                    "Preenche todos os campos."
-                );
+        const normalizedName = normalizeTeamName(name);
+        const exists = teams.some(team =>
+            normalizeTeamName(team.name) === normalizedName ||
+            team.short.toLowerCase() === short.toLowerCase()
+        );
 
-                return;
-
-            }
-
-
-            const exists =
-                teams.some(
-                    team =>
-                        team.name
-                            .toLowerCase() ===
-                            name.toLowerCase()
-                        ||
-                        team.short
-                            .toLowerCase() ===
-                            short.toLowerCase()
-                );
-
-
-            if (exists) {
-
-                alert(
-                    "Já existe uma equipa com esse nome ou sigla."
-                );
-
-                return;
-
-            }
-
-
-            teams.push({
-
-                id: crypto.randomUUID(),
-
-                name,
-
-                short,
-
-                captainId: null
-
-            });
-
-
-            saveData();
-
-            teamForm.reset();
-
-            renderAll();
-
+        if (exists) {
 
             alert(
-                "Equipa cadastrada com sucesso!"
+                "Já existe uma equipa com esse nome ou sigla."
             );
 
-        }
-    );
-
-}
-
-
-// =====================================================
-// VERIFICAR SE JOGADOR JÁ É CAPITÃO
-// =====================================================
-
-function isPlayerCaptainElsewhere(
-    playerId,
-    currentTeamId
-) {
-
-    return teams.some(
-        team =>
-            team.id !== currentTeamId &&
-            team.captainId === playerId
-    );
-
-}
-
-
-// =====================================================
-// LIMPAR CAPITÃES INVÁLIDOS
-// =====================================================
-
-function cleanInvalidCaptains() {
-
-    let changed = false;
-
-
-    teams.forEach(team => {
-
-        if (!team.captainId) {
             return;
-        }
-
-
-        const player =
-            players.find(
-                player =>
-                    player.id ===
-                        team.captainId &&
-                    player.teamId ===
-                        team.id
-            );
-
-
-        if (!player) {
-
-            team.captainId = null;
-
-            changed = true;
 
         }
 
-    });
+        teams.push({
 
+            id: crypto.randomUUID(),
 
-    // Impedir um jogador de ser capitão
-    // em duas equipas.
+            name,
+            short,
 
-    const usedCaptains = new Set();
+            captainId: null
 
+        });
 
-    teams.forEach(team => {
-
-        if (!team.captainId) {
-            return;
-        }
-
-
-        if (
-            usedCaptains.has(
-                team.captainId
-            )
-        ) {
-
-            team.captainId = null;
-
-            changed = true;
-
-        } else {
-
-            usedCaptains.add(
-                team.captainId
-            );
-
-        }
-
-    });
-
-
-    if (changed) {
         saveData();
-    }
+
+        teamForm.reset();
+
+        renderAll();
+
+        alert("Equipa cadastrada com sucesso!");
+
+    });
 
 }
 
 
-// =====================================================
+// ========================================
 // MOSTRAR EQUIPAS
-// =====================================================
+// ========================================
 
 function renderTeams() {
 
-    cleanInvalidCaptains();
-
-
     const container =
-        document.getElementById(
-            "teamsList"
-        );
-
+        document.getElementById("teamsList");
 
     if (!container) return;
-
 
     if (teams.length === 0) {
 
@@ -938,169 +545,117 @@ function renderTeams() {
 
     }
 
+    container.innerHTML = teams.map(team => {
 
-    container.innerHTML =
-        teams.map(team => {
+        const teamPlayers = players.filter(
+            player => player.teamId === team.id
+        );
 
-            const teamPlayers =
-                players.filter(
-                    player =>
-                        player.teamId ===
-                        team.id
-                );
+        // Só é capitão válido quem pertence à própria equipa.
+        const captain = teamPlayers.find(
+            player => player.id === team.captainId
+        );
 
+        const availableCaptainPlayers = teamPlayers.filter(player => {
+            const captainOfAnotherTeam = teams.some(otherTeam =>
+                otherTeam.id !== team.id &&
+                otherTeam.captainId === player.id
+            );
+            return !captainOfAnotherTeam || player.id === team.captainId;
+        });
 
-            const captain =
-                teamPlayers.find(
-                    player =>
-                        player.id ===
-                        team.captainId
-                );
+        return `
 
+            <div class="content-card">
 
-            const availablePlayers =
-                teamPlayers.filter(
-                    player =>
-                        !isPlayerCaptainElsewhere(
-                            player.id,
-                            team.id
-                        )
-                        ||
-                        player.id ===
-                            team.captainId
-                );
+                <h3>
+                    ${escapeHTML(team.name)}
+                </h3>
 
+                <p>
+                    Sigla:
+                    ${escapeHTML(team.short)}
+                </p>
 
-            return `
+                <p>
+                    Jogadores inscritos:
+                    ${teamPlayers.length}
+                </p>
 
-                <div class="content-card">
+                <div class="form-group">
 
-                    <h3>
-                        ${escapeHTML(
-                            team.name
-                        )}
-                    </h3>
+                    <label>
+                        Capitão da equipa
+                    </label>
 
-                    <p>
-                        Sigla:
-                        ${escapeHTML(
-                            team.short
-                        )}
-                    </p>
+                    <select
+                        class="captain-select"
+                        data-team-id="${team.id}"
+                        ${teamPlayers.length === 0 ? "disabled" : ""}
+                    >
 
-                    <p>
-                        Jogadores inscritos:
-                        ${teamPlayers.length}
-                    </p>
+                        <option value="">
+                            Selecionar capitão
+                        </option>
 
-                    <div class="form-group">
+                        ${availableCaptainPlayers.map(player => `
 
-                        <label>
-                            Capitão da equipa
-                        </label>
-
-                        <select
-                            class="captain-select"
-                            data-team-id="${team.id}"
-                            ${
-                                teamPlayers.length === 0
-                                    ? "disabled"
-                                    : ""
-                            }
-                        >
-
-                            <option value="">
+                            <option
+                                value="${player.id}"
                                 ${
-                                    teamPlayers.length === 0
-                                        ? "Sem jogadores disponíveis"
-                                        : "Selecionar capitão"
+                                    player.id === team.captainId
+                                    ? "selected"
+                                    : ""
                                 }
+                            >
+
+                                ${escapeHTML(player.name)}
+                                — Nº ${player.number}
+
                             </option>
 
-                            ${availablePlayers
-                                .map(player => `
+                        `).join("")}
 
-                                    <option
-                                        value="${player.id}"
-                                        ${
-                                            player.id ===
-                                            team.captainId
-                                                ? "selected"
-                                                : ""
-                                        }
-                                    >
-
-                                        ${escapeHTML(
-                                            player.name
-                                        )}
-
-                                        — Nº
-                                        ${player.number}
-
-                                    </option>
-
-                                `)
-                                .join("")}
-
-                        </select>
-
-                        ${
-                            teamPlayers.length === 0
-                                ? ""
-                                : availablePlayers.length === 0
-                                    ? `
-                                        <p class="captain-warning">
-                                            Todos os jogadores desta equipa
-                                            já estão associados a outra função
-                                            de capitão.
-                                        </p>
-                                      `
-                                    : ""
-                        }
-
-                    </div>
-
-                    <p>
-
-                        Capitão atual:
-
-                        <strong>
-                            ${
-                                captain
-                                    ? escapeHTML(
-                                        captain.name
-                                    )
-                                    : "Nenhum"
-                            }
-                        </strong>
-
-                    </p>
-
-                    <button
-                        class="delete-btn"
-                        data-delete-team="${team.id}"
-                    >
-                        Eliminar equipa
-                    </button>
+                    </select>
 
                 </div>
 
-            `;
+                <p>
 
-        }).join("");
+                    Capitão atual:
+
+                    <strong>
+                        ${
+                            captain
+                            ? escapeHTML(captain.name)
+                            : "Nenhum"
+                        }
+                    </strong>
+
+                </p>
+
+                <button
+                    class="delete-btn"
+                    data-delete-team="${team.id}"
+                >
+                    Eliminar equipa
+                </button>
+
+            </div>
+
+        `;
+
+    }).join("");
 
 }
 
 
-// =====================================================
+// ========================================
 // ALTERAR CAPITÃO
-// =====================================================
+// ========================================
 
 const teamsList =
-    document.getElementById(
-        "teamsList"
-    );
-
+    document.getElementById("teamsList");
 
 if (teamsList) {
 
@@ -1118,25 +673,17 @@ if (teamsList) {
 
             }
 
-
             const teamId =
                 event.target.dataset.teamId;
-
 
             const playerId =
                 event.target.value;
 
-
-            const team =
-                teams.find(
-                    team =>
-                        team.id ===
-                        teamId
-                );
-
+            const team = teams.find(
+                team => team.id === teamId
+            );
 
             if (!team) return;
-
 
             if (playerId === "") {
 
@@ -1144,15 +691,11 @@ if (teamsList) {
 
             } else {
 
-                const player =
-                    players.find(
-                        player =>
-                            player.id ===
-                                playerId &&
-                            player.teamId ===
-                                teamId
-                    );
-
+                const player = players.find(
+                    player =>
+                        player.id === playerId &&
+                        player.teamId === teamId
+                );
 
                 if (!player) {
 
@@ -1160,42 +703,28 @@ if (teamsList) {
                         "Este jogador não pertence a esta equipa."
                     );
 
-                    renderTeams();
-
                     return;
 
                 }
 
+                const alreadyCaptain = teams.some(otherTeam =>
+                    otherTeam.id !== teamId &&
+                    otherTeam.captainId === playerId
+                );
 
-                if (
-                    isPlayerCaptainElsewhere(
-                        playerId,
-                        teamId
-                    )
-                ) {
-
-                    alert(
-                        "Este jogador já é capitão de outra equipa."
-                    );
-
+                if (alreadyCaptain) {
+                    alert("Este jogador já é capitão de outra equipa.");
                     renderTeams();
-
                     return;
-
                 }
 
-
-                team.captainId =
-                    playerId;
+                team.captainId = playerId;
 
             }
-
 
             saveData();
 
             renderTeams();
-
-            renderVisitorAll();
 
         }
     );
@@ -1203,9 +732,9 @@ if (teamsList) {
 }
 
 
-// =====================================================
+// ========================================
 // ELIMINAR EQUIPA
-// =====================================================
+// ========================================
 
 if (teamsList) {
 
@@ -1218,40 +747,27 @@ if (teamsList) {
                     "[data-delete-team]"
                 );
 
-
             if (!button) return;
-
 
             const id =
                 button.dataset.deleteTeam;
 
-
             const index =
                 teams.findIndex(
-                    team =>
-                        team.id === id
+                    team => team.id === id
                 );
-
 
             if (index === -1) return;
 
-
-            if (
-                !confirm(
-                    "Eliminar esta equipa e os seus jogadores?"
-                )
-            ) {
+            if (!confirm(
+                "Eliminar esta equipa e os seus jogadores?"
+            )) {
 
                 return;
 
             }
 
-
-            teams.splice(
-                index,
-                1
-            );
-
+            teams.splice(index, 1);
 
             for (
                 let i = players.length - 1;
@@ -1259,19 +775,13 @@ if (teamsList) {
                 i--
             ) {
 
-                if (
-                    players[i].teamId === id
-                ) {
+                if (players[i].teamId === id) {
 
-                    players.splice(
-                        i,
-                        1
-                    );
+                    players.splice(i, 1);
 
                 }
 
             }
-
 
             saveData();
 
@@ -1283,37 +793,25 @@ if (teamsList) {
 }
 
 
-// =====================================================
-// SELECTS DE EQUIPAS
-// =====================================================
+// ========================================
+// ATUALIZAR SELECTS DE EQUIPAS
+// ========================================
 
 function updateTeamSelects() {
 
     const selects = [
 
-        document.getElementById(
-            "playerTeam"
-        ),
-
-        document.getElementById(
-            "gameHome"
-        ),
-
-        document.getElementById(
-            "gameAway"
-        )
+        document.getElementById("playerTeam"),
+        document.getElementById("gameHome"),
+        document.getElementById("gameAway")
 
     ];
-
 
     selects.forEach(select => {
 
         if (!select) return;
 
-
-        const previousValue =
-            select.value;
-
+        const previousValue = select.value;
 
         select.innerHTML = `
             <option value="">
@@ -1321,40 +819,26 @@ function updateTeamSelects() {
             </option>
         `;
 
-
         teams.forEach(team => {
 
             const option =
-                document.createElement(
-                    "option"
-                );
+                document.createElement("option");
 
+            option.value = team.id;
 
-            option.value =
-                team.id;
+            option.textContent = team.name;
 
-
-            option.textContent =
-                team.name;
-
-
-            select.appendChild(
-                option
-            );
+            select.appendChild(option);
 
         });
 
-
         if (
             teams.some(
-                team =>
-                    team.id ===
-                    previousValue
+                team => team.id === previousValue
             )
         ) {
 
-            select.value =
-                previousValue;
+            select.value = previousValue;
 
         }
 
@@ -1363,15 +847,12 @@ function updateTeamSelects() {
 }
 
 
-// =====================================================
-// JOGADORES
-// =====================================================
+// ========================================
+// CADASTRAR JOGADOR
+// ========================================
 
 const playerForm =
-    document.getElementById(
-        "playerForm"
-    );
-
+    document.getElementById("playerForm");
 
 if (playerForm) {
 
@@ -1381,15 +862,9 @@ if (playerForm) {
 
             event.preventDefault();
 
-
             const name =
-                document
-                    .getElementById(
-                        "playerName"
-                    )
-                    .value
-                    .trim();
-
+                document.getElementById("playerName")
+                .value.trim();
 
             const number =
                 Number(
@@ -1398,18 +873,15 @@ if (playerForm) {
                     ).value
                 );
 
-
             const position =
                 document.getElementById(
                     "playerPosition"
                 ).value;
 
-
             const teamId =
                 document.getElementById(
                     "playerTeam"
                 ).value;
-
 
             if (
                 !name ||
@@ -1418,22 +890,15 @@ if (playerForm) {
                 !teamId
             ) {
 
-                alert(
-                    "Preenche todos os campos."
-                );
+                alert("Preenche todos os campos.");
 
                 return;
 
             }
 
-
-            const team =
-                teams.find(
-                    team =>
-                        team.id ===
-                        teamId
-                );
-
+            const team = teams.find(
+                team => team.id === teamId
+            );
 
             if (!team) {
 
@@ -1445,22 +910,14 @@ if (playerForm) {
 
             }
 
-
-            const duplicate =
-                players.some(
-                    player =>
-                        player.teamId ===
-                            teamId &&
-                        (
-                            player.number ===
-                                number
-                            ||
-                            player.name
-                                .toLowerCase() ===
-                                name.toLowerCase()
-                        )
-                );
-
+            const duplicate = players.some(player =>
+                player.teamId === teamId &&
+                (
+                    player.number === number ||
+                    player.name.toLowerCase() ===
+                    name.toLowerCase()
+                )
+            );
 
             if (duplicate) {
 
@@ -1472,30 +929,24 @@ if (playerForm) {
 
             }
 
-
             players.push({
 
                 id: crypto.randomUUID(),
 
                 name,
-
                 number,
-
                 position,
-
                 teamId,
 
                 goals: 0
 
             });
 
-
             saveData();
 
             playerForm.reset();
 
             renderAll();
-
 
             alert(
                 "Jogador cadastrado com sucesso!"
@@ -1507,20 +958,16 @@ if (playerForm) {
 }
 
 
-// =====================================================
+// ========================================
 // MOSTRAR JOGADORES
-// =====================================================
+// ========================================
 
 function renderPlayers() {
 
     const container =
-        document.getElementById(
-            "playersList"
-        );
-
+        document.getElementById("playersList");
 
     if (!container) return;
-
 
     if (players.length === 0) {
 
@@ -1534,83 +981,60 @@ function renderPlayers() {
 
     }
 
+    container.innerHTML = players.map(player => {
 
-    container.innerHTML =
-        players.map(player => {
+        const team = teams.find(
+            team => team.id === player.teamId
+        );
 
-            const team =
-                teams.find(
-                    team =>
-                        team.id ===
-                        player.teamId
-                );
+        return `
 
+            <div class="list-item">
 
-            return `
+                <div>
 
-                <div class="list-item">
+                    <strong>
+                        ${escapeHTML(player.name)}
+                    </strong>
 
-                    <div>
-
-                        <strong>
-                            ${escapeHTML(
-                                player.name
-                            )}
-                        </strong>
-
-                        <p>
-
-                            Nº ${player.number}
-
-                            •
-
-                            ${escapeHTML(
-                                player.position
-                            )}
-
-                            •
-
-                            ${
-                                escapeHTML(
-                                    team
-                                        ? team.name
-                                        : "Sem equipa"
-                                )
-                            }
-
-                            •
-
-                            ${player.goals || 0} golos
-
-                        </p>
-
-                    </div>
-
-                    <button
-                        class="delete-btn"
-                        data-delete-player="${player.id}"
-                    >
-                        Eliminar
-                    </button>
+                    <p>
+                        Nº ${player.number}
+                        •
+                        ${escapeHTML(player.position)}
+                        •
+                        ${
+                            escapeHTML(
+                                team
+                                ? team.name
+                                : "Sem equipa"
+                            )
+                        }
+                    </p>
 
                 </div>
 
-            `;
+                <button
+                    class="delete-btn"
+                    data-delete-player="${player.id}"
+                >
+                    Eliminar
+                </button>
 
-        }).join("");
+            </div>
+
+        `;
+
+    }).join("");
 
 }
 
 
-// =====================================================
+// ========================================
 // ELIMINAR JOGADOR
-// =====================================================
+// ========================================
 
 const playersList =
-    document.getElementById(
-        "playersList"
-    );
-
+    document.getElementById("playersList");
 
 if (playersList) {
 
@@ -1623,56 +1047,37 @@ if (playersList) {
                     "[data-delete-player]"
                 );
 
-
             if (!button) return;
 
-
             const id =
-                button.dataset
-                    .deletePlayer;
-
+                button.dataset.deletePlayer;
 
             const index =
                 players.findIndex(
-                    player =>
-                        player.id === id
+                    player => player.id === id
                 );
-
 
             if (index === -1) return;
 
-
-            if (
-                !confirm(
-                    "Tens a certeza de que queres eliminar este jogador?"
-                )
-            ) {
+            if (!confirm(
+                "Tens a certeza de que queres eliminar este jogador?"
+            )) {
 
                 return;
 
             }
 
-
-            players.splice(
-                index,
-                1
-            );
-
+            players.splice(index, 1);
 
             teams.forEach(team => {
 
-                if (
-                    team.captainId ===
-                    id
-                ) {
+                if (team.captainId === id) {
 
-                    team.captainId =
-                        null;
+                    team.captainId = null;
 
                 }
 
             });
-
 
             saveData();
 
@@ -1684,15 +1089,12 @@ if (playersList) {
 }
 
 
-// =====================================================
+// ========================================
 // AGENDAR JOGO
-// =====================================================
+// ========================================
 
 const gameForm =
-    document.getElementById(
-        "gameForm"
-    );
-
+    document.getElementById("gameForm");
 
 if (gameForm) {
 
@@ -1702,38 +1104,30 @@ if (gameForm) {
 
             event.preventDefault();
 
-
             const homeId =
                 document.getElementById(
                     "gameHome"
                 ).value;
-
 
             const awayId =
                 document.getElementById(
                     "gameAway"
                 ).value;
 
-
             const date =
                 document.getElementById(
                     "gameDate"
                 ).value;
-
 
             const time =
                 document.getElementById(
                     "gameTime"
                 ).value;
 
-
             const field =
                 document.getElementById(
                     "gameField"
-                )
-                .value
-                .trim();
-
+                ).value.trim();
 
             if (
                 !homeId ||
@@ -1751,10 +1145,7 @@ if (gameForm) {
 
             }
 
-
-            if (
-                homeId === awayId
-            ) {
+            if (homeId === awayId) {
 
                 alert(
                     "Uma equipa não pode jogar contra si própria."
@@ -1764,39 +1155,29 @@ if (gameForm) {
 
             }
 
-
             games.push({
 
                 id: crypto.randomUUID(),
 
                 homeId,
-
                 awayId,
 
                 date,
-
                 time,
-
                 field,
 
                 homeScore: null,
-
                 awayScore: null,
 
-                status: "Agendado",
-
-                createdAt:
-                    new Date().toISOString()
+                status: "Agendado"
 
             });
-
 
             saveData();
 
             gameForm.reset();
 
             renderAll();
-
 
             alert(
                 "Jogo agendado com sucesso!"
@@ -1808,108 +1189,57 @@ if (gameForm) {
 }
 
 
-// =====================================================
-// JOGOS ATIVOS
-// =====================================================
-
-function getActiveGames() {
-
-    return games
-        .filter(
-            game =>
-                game.status !==
-                "Terminado"
-        )
-        .sort(
-            (a, b) =>
-                new Date(
-                    `${a.date}T${a.time}`
-                ) -
-                new Date(
-                    `${b.date}T${b.time}`
-                )
-        );
-
-}
-
-
-// =====================================================
-// JOGOS TERMINADOS
-// =====================================================
-
-function getFinishedGames() {
-
-    return games
-        .filter(
-            game =>
-                game.status ===
-                "Terminado"
-        )
-        .sort(
-            (a, b) =>
-                new Date(
-                    `${b.date}T${b.time}`
-                ) -
-                new Date(
-                    `${a.date}T${a.time}`
-                )
-        );
-
-}
-
-
-// =====================================================
-// MOSTRAR JOGOS ADMIN
-// =====================================================
+// ========================================
+// MOSTRAR JOGOS
+// ========================================
 
 function renderGames() {
 
     const container =
-        document.getElementById(
-            "gamesList"
-        );
-
+        document.getElementById("gamesList");
 
     if (!container) return;
 
+    const currentGames = games.filter(
+        game => game.status !== "Terminado"
+    );
 
-    const activeGames =
-        getActiveGames();
-
-
-    if (activeGames.length === 0) {
+    if (currentGames.length === 0) {
 
         container.innerHTML = `
             <p class="empty-message">
-                Não existem jogos correntes.
+                Não existem jogos correntes ou agendados.
             </p>
         `;
 
         updateResultSelect();
-
+        renderFinishedGames();
         return;
 
     }
 
+    const sortedGames =
+        [...currentGames].sort((a, b) => {
+
+            return new Date(
+                `${a.date}T${a.time}`
+            ) -
+            new Date(
+                `${b.date}T${b.time}`
+            );
+
+        });
 
     container.innerHTML =
-        activeGames.map(game => {
+        sortedGames.map(game => {
 
-            const home =
-                teams.find(
-                    team =>
-                        team.id ===
-                        game.homeId
-                );
+            const home = teams.find(
+                team => team.id === game.homeId
+            );
 
-
-            const away =
-                teams.find(
-                    team =>
-                        team.id ===
-                        game.awayId
-                );
-
+            const away = teams.find(
+                team => team.id === game.awayId
+            );
 
             return `
 
@@ -1922,18 +1252,30 @@ function renderGames() {
                             ${
                                 escapeHTML(
                                     home
-                                        ? home.name
-                                        : "Equipa removida"
+                                    ? home.name
+                                    : "Equipa removida"
                                 )
                             }
 
-                            vs
+                            ${
+                                game.homeScore !== null
+                                ? game.homeScore
+                                : "-"
+                            }
+
+                            :
+
+                            ${
+                                game.awayScore !== null
+                                ? game.awayScore
+                                : "-"
+                            }
 
                             ${
                                 escapeHTML(
                                     away
-                                        ? away.name
-                                        : "Equipa removida"
+                                    ? away.name
+                                    : "Equipa removida"
                                 )
                             }
 
@@ -1941,29 +1283,16 @@ function renderGames() {
 
                         <p>
 
-                            ${formatDate(
-                                game.date
-                            )}
-
+                            ${formatDate(game.date)}
                             •
-
-                            ${escapeHTML(
-                                game.time
-                            )}
-
+                            ${escapeHTML(game.time)}
                             •
-
-                            ${escapeHTML(
-                                game.field
-                            )}
+                            ${escapeHTML(game.field)}
 
                         </p>
 
                         <p>
-                            Estado:
-                            ${escapeHTML(
-                                game.status
-                            )}
+                            ${escapeHTML(game.status)}
                         </p>
 
                     </div>
@@ -1974,26 +1303,69 @@ function renderGames() {
 
         }).join("");
 
-
     updateResultSelect();
+    renderFinishedGames();
 
 }
 
 
-// =====================================================
-// SELECT DE RESULTADOS
-// =====================================================
+// ========================================
+// JOGOS TERMINADOS (HISTÓRICO)
+// ========================================
+
+function renderFinishedGames() {
+    const container = document.getElementById("finishedGamesList");
+    if (!container) return;
+
+    const finishedGames = games
+        .filter(game => game.status === "Terminado")
+        .sort((a, b) =>
+            new Date(`${b.date}T${b.time}`) -
+            new Date(`${a.date}T${a.time}`)
+        );
+
+    if (finishedGames.length === 0) {
+        container.innerHTML = `
+            <p class="empty-message">Ainda não existem jogos terminados.</p>
+        `;
+        return;
+    }
+
+    container.innerHTML = finishedGames.map(game => {
+        const home = teams.find(team => team.id === game.homeId);
+        const away = teams.find(team => team.id === game.awayId);
+
+        return `
+            <div class="list-item">
+                <div>
+                    <strong>
+                        ${escapeHTML(home ? home.name : "Equipa removida")}
+                        ${game.homeScore} : ${game.awayScore}
+                        ${escapeHTML(away ? away.name : "Equipa removida")}
+                    </strong>
+                    <p>
+                        ${formatDate(game.date)} •
+                        ${escapeHTML(game.time)} •
+                        ${escapeHTML(game.field)}
+                    </p>
+                    <p>Terminado</p>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+
+// ========================================
+// ATUALIZAR SELECT DE RESULTADOS
+// ========================================
 
 function updateResultSelect() {
 
     const select =
-        document.getElementById(
-            "resultGame"
-        );
-
+        document.getElementById("resultGame");
 
     if (!select) return;
-
 
     select.innerHTML = `
         <option value="">
@@ -2001,62 +1373,39 @@ function updateResultSelect() {
         </option>
     `;
 
+    games.filter(game => game.status !== "Terminado").forEach(game => {
 
-    getActiveGames().forEach(game => {
+        const home = teams.find(
+            team => team.id === game.homeId
+        );
 
-        const home =
-            teams.find(
-                team =>
-                    team.id ===
-                    game.homeId
-            );
+        const away = teams.find(
+            team => team.id === game.awayId
+        );
 
-
-        const away =
-            teams.find(
-                team =>
-                    team.id ===
-                    game.awayId
-            );
-
-
-        if (!home || !away) {
-            return;
-        }
-
+        if (!home || !away) return;
 
         const option =
-            document.createElement(
-                "option"
-            );
+            document.createElement("option");
 
-
-        option.value =
-            game.id;
-
+        option.value = game.id;
 
         option.textContent =
             `${home.name} vs ${away.name} — ${formatDate(game.date)}`;
 
-
-        select.appendChild(
-            option
-        );
+        select.appendChild(option);
 
     });
 
 }
 
 
-// =====================================================
+// ========================================
 // REGISTAR RESULTADO
-// =====================================================
+// ========================================
 
 const resultForm =
-    document.getElementById(
-        "resultForm"
-    );
-
+    document.getElementById("resultForm");
 
 if (resultForm) {
 
@@ -2066,12 +1415,10 @@ if (resultForm) {
 
             event.preventDefault();
 
-
             const gameId =
                 document.getElementById(
                     "resultGame"
                 ).value;
-
 
             const homeScore =
                 Number(
@@ -2080,14 +1427,12 @@ if (resultForm) {
                     ).value
                 );
 
-
             const awayScore =
                 Number(
                     document.getElementById(
                         "awayScore"
                     ).value
                 );
-
 
             if (
                 !gameId ||
@@ -2103,14 +1448,10 @@ if (resultForm) {
 
             }
 
-
             const game =
                 games.find(
-                    game =>
-                        game.id ===
-                        gameId
+                    game => game.id === gameId
                 );
-
 
             if (!game) {
 
@@ -2122,50 +1463,35 @@ if (resultForm) {
 
             }
 
-
-            if (
-                game.status ===
-                "Terminado"
-            ) {
-
-                alert(
-                    "Este jogo já foi terminado."
-                );
-
+            let homeScorers = [];
+            let awayScorers = [];
+            try {
+                homeScorers = parseScorers(document.getElementById("homeScorers")?.value || "", game.homeId);
+                awayScorers = parseScorers(document.getElementById("awayScorers")?.value || "", game.awayId);
+            } catch (error) {
+                alert(error.message);
                 return;
-
+            }
+            const homeGoalsRecorded = homeScorers.reduce((sum, x) => sum + x.goals, 0);
+            const awayGoalsRecorded = awayScorers.reduce((sum, x) => sum + x.goals, 0);
+            if (homeGoalsRecorded !== homeScore || awayGoalsRecorded !== awayScore) {
+                alert("A soma dos golos dos marcadores deve ser igual ao resultado. Para jogos sem golos, deixa o campo vazio.");
+                return;
             }
 
-
-            game.homeScore =
-                homeScore;
-
-
-            game.awayScore =
-                awayScore;
-
-
-            game.status =
-                "Terminado";
-
-
-            game.finishedAt =
-                new Date().toISOString();
-
+            game.homeScore = homeScore;
+            game.awayScore = awayScore;
+            game.scorers = [...homeScorers, ...awayScorers];
+            game.status = "Terminado";
 
             saveData();
 
-
             resultForm.reset();
-
 
             renderAll();
 
-            renderVisitorAll();
-
-
             alert(
-                "Resultado registado com sucesso! O jogo passou para Resultados."
+                "Resultado registado com sucesso!"
             );
 
         }
@@ -2174,1267 +1500,189 @@ if (resultForm) {
 }
 
 
-// =====================================================
-// JOGOS TERMINADOS NO ADMIN
-// =====================================================
+// ========================================
+// SORTEIO DE GRUPOS E GERAÇÃO AUTOMÁTICA DE JOGOS
+// ========================================
+function groupCountForTeamCount(count) {
+    if (count < 3) return 1;
+    return Math.max(1, Math.ceil(count / 4)); // grupos de cerca de 3–4 equipas
+}
 
-function renderFinishedGames() {
-
-    const container =
-        document.getElementById(
-            "finishedGamesList"
-        );
-
-
-    if (!container) return;
-
-
-    const finishedGames =
-        getFinishedGames();
-
-
-    if (
-        finishedGames.length ===
-        0
-    ) {
-
-        container.innerHTML = `
-            <p class="empty-message">
-                Ainda não existem resultados.
-            </p>
-        `;
-
-        return;
-
+function shuffle(items) {
+    const arr = [...items];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
-
-    container.innerHTML =
-        finishedGames.map(game => {
-
-            const home =
-                teams.find(
-                    team =>
-                        team.id ===
-                        game.homeId
-                );
-
-
-            const away =
-                teams.find(
-                    team =>
-                        team.id ===
-                        game.awayId
-                );
-
-
-            return `
-
-                <div class="list-item">
-
-                    <div>
-
-                        <strong>
-
-                            ${
-                                escapeHTML(
-                                    home
-                                        ? home.name
-                                        : "Equipa removida"
-                                )
-                            }
-
-                            ${game.homeScore}
-
-                            :
-
-                            ${game.awayScore}
-
-                            ${
-                                escapeHTML(
-                                    away
-                                        ? away.name
-                                        : "Equipa removida"
-                                )
-                            }
-
-                        </strong>
-
-                        <p>
-
-                            ${formatDate(
-                                game.date
-                            )}
-
-                            •
-
-                            ${escapeHTML(
-                                game.time
-                            )}
-
-                            •
-
-                            ${escapeHTML(
-                                game.field
-                            )}
-
-                        </p>
-
-                        <p>
-                            Terminado
-                        </p>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }).join("");
-
+    return arr;
 }
 
-
-// =====================================================
-// CLASSIFICAÇÃO
-// =====================================================
-
-function calculateStandings() {
-
-    const standings =
-        teams.map(team => ({
-
-            teamId: team.id,
-
-            played: 0,
-
-            wins: 0,
-
-            draws: 0,
-
-            losses: 0,
-
-            goalsFor: 0,
-
-            goalsAgainst: 0,
-
-            points: 0
-
-        }));
-
-
-    const finishedGames =
-        getFinishedGames();
-
-
-    finishedGames.forEach(game => {
-
-        const home =
-            standings.find(
-                item =>
-                    item.teamId ===
-                    game.homeId
-            );
-
-
-        const away =
-            standings.find(
-                item =>
-                    item.teamId ===
-                    game.awayId
-            );
-
-
-        if (!home || !away) {
-            return;
-        }
-
-
-        const homeGoals =
-            Number(game.homeScore);
-
-
-        const awayGoals =
-            Number(game.awayScore);
-
-
-        home.played++;
-        away.played++;
-
-
-        home.goalsFor +=
-            homeGoals;
-
-        home.goalsAgainst +=
-            awayGoals;
-
-
-        away.goalsFor +=
-            awayGoals;
-
-        away.goalsAgainst +=
-            homeGoals;
-
-
-        if (
-            homeGoals >
-            awayGoals
-        ) {
-
-            home.wins++;
-
-            away.losses++;
-
-            home.points += 3;
-
-        } else if (
-            homeGoals <
-            awayGoals
-        ) {
-
-            away.wins++;
-
-            home.losses++;
-
-            away.points += 3;
-
-        } else {
-
-            home.draws++;
-
-            away.draws++;
-
-            home.points++;
-
-            away.points++;
-
-        }
-
-    });
-
-
-    standings.forEach(team => {
-
-        team.goalDifference =
-            team.goalsFor -
-            team.goalsAgainst;
-
-    });
-
-
-    standings.sort(
-        (a, b) => {
-
-            if (
-                b.points !==
-                a.points
-            ) {
-
-                return (
-                    b.points -
-                    a.points
-                );
-
-            }
-
-
-            if (
-                b.goalDifference !==
-                a.goalDifference
-            ) {
-
-                return (
-                    b.goalDifference -
-                    a.goalDifference
-                );
-
-            }
-
-
-            return (
-                b.goalsFor -
-                a.goalsFor
-            );
-
-        }
-    );
-
-
-    return standings;
-
+function selectedDrawChampionship() {
+    const id = document.getElementById("drawChampionship")?.value;
+    return championships.find(c => c.id === id);
 }
 
+function renderDrawChampionships() {
+    const select = document.getElementById("drawChampionship");
+    if (!select) return;
+    const previous = select.value;
+    select.innerHTML = '<option value="">Selecionar campeonato</option>' + championships.map(c => `<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");
+    if (championships.some(c => c.id === previous)) select.value = previous;
+    renderGroupsPreview();
+}
 
-// =====================================================
-// VISITANTE - NAVEGAÇÃO
-// =====================================================
+function renderGroupsPreview() {
+    const box = document.getElementById("groupsPreview");
+    const champ = selectedDrawChampionship();
+    if (!box) return;
+    if (!champ || !champ.groups?.length) { box.innerHTML = '<p class="empty-message">Ainda não foram sorteados grupos.</p>'; return; }
+    box.innerHTML = champ.groups.map(g => `<div class="list-item"><div><strong>Grupo ${escapeHTML(g.name)}</strong><p>${g.teamIds.map(id => teams.find(t => t.id === id)?.name || "Equipa removida").map(escapeHTML).join(" • ")}</p></div></div>`).join("");
+}
 
-const visitorNavButtons =
-    document.querySelectorAll(
-        ".visitor-nav"
-    );
-
-
-visitorNavButtons.forEach(button => {
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            showVisitorPage(
-                button.dataset
-                    .visitorPage
-            );
-
-        }
-    );
-
+const drawGroupsBtn = document.getElementById("drawGroupsBtn");
+if (drawGroupsBtn) drawGroupsBtn.addEventListener("click", () => {
+    const champ = selectedDrawChampionship();
+    if (!champ) return alert("Seleciona um campeonato.");
+    if (teams.length < 2) return alert("Regista pelo menos duas equipas antes do sorteio.");
+    if (games.some(g => g.championshipId === champ.id && g.status === "Terminado")) return alert("Este campeonato já tem jogos terminados. Não é possível refazer o sorteio.");
+    const count = groupCountForTeamCount(teams.length);
+    const shuffled = shuffle(teams);
+    const groups = Array.from({length: count}, (_, i) => ({name: String.fromCharCode(65 + i), teamIds: []}));
+    shuffled.forEach((team, i) => groups[i % count].teamIds.push(team.id));
+    champ.groups = groups;
+    games.splice(0, games.length, ...games.filter(g => g.championshipId !== champ.id));
+    saveData(); renderGroupsPreview(); renderAll();
+    alert(`Sorteio concluído: ${count} grupo(s).`);
 });
 
-
-document
-    .querySelectorAll(
-        "[data-visitor-open]"
-    )
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            function () {
-
-                showVisitorPage(
-                    button.dataset
-                        .visitorOpen
-                );
-
+const generateGamesBtn = document.getElementById("generateGamesBtn");
+if (generateGamesBtn) generateGamesBtn.addEventListener("click", () => {
+    const champ = selectedDrawChampionship();
+    if (!champ || !champ.groups?.length) return alert("Primeiro sorteia os grupos.");
+    if (games.some(g => g.championshipId === champ.id)) return alert("Os jogos deste campeonato já foram gerados. Para evitar alterações, não serão duplicados.");
+    const today = new Date().toISOString().slice(0, 10);
+    let created = 0;
+    champ.groups.forEach(group => {
+        for (let i = 0; i < group.teamIds.length; i++) {
+            for (let j = i + 1; j < group.teamIds.length; j++) {
+                games.push({id: crypto.randomUUID(), championshipId: champ.id, group: group.name, phase: "Grupos", homeId: group.teamIds[i], awayId: group.teamIds[j], date: today, time: "08:00", field: "A definir", homeScore: null, awayScore: null, status: "Agendado", scorers: []});
+                created++;
             }
-        );
-
-    });
-
-
-function showVisitorPage(
-    pageId
-) {
-
-    document
-        .querySelectorAll(
-            ".visitor-content-page"
-        )
-        .forEach(page => {
-
-            page.classList.add(
-                "hidden"
-            );
-
-        });
-
-
-    const page =
-        document.getElementById(
-            pageId
-        );
-
-
-    if (page) {
-
-        page.classList.remove(
-            "hidden"
-        );
-
-    }
-
-
-    visitorNavButtons.forEach(
-        button => {
-
-            button.classList.remove(
-                "active"
-            );
-
-
-            if (
-                button.dataset
-                    .visitorPage ===
-                pageId
-            ) {
-
-                button.classList.add(
-                    "active"
-                );
-
-            }
-
         }
-    );
+    });
+    saveData(); renderAll(); alert(`${created} jogo(s) gerado(s) automaticamente. Datas, horas e campo podem ser ajustados depois.`);
+});
 
-}
+const drawChampionshipSelect = document.getElementById("drawChampionship");
+if (drawChampionshipSelect) drawChampionshipSelect.addEventListener("change", renderGroupsPreview);
 
-
-// =====================================================
-// VISITANTE - ESTATÍSTICAS
-// =====================================================
-
-function renderVisitorStats() {
-
-    const activeGames =
-        getActiveGames();
-
-    const finishedGames =
-        getFinishedGames();
-
-
-    const totalTeams =
-        document.getElementById(
-            "visitorTotalTeams"
-        );
-
-    const totalPlayers =
-        document.getElementById(
-            "visitorTotalPlayers"
-        );
-
-    const totalGames =
-        document.getElementById(
-            "visitorTotalGames"
-        );
-
-    const totalResults =
-        document.getElementById(
-            "visitorTotalResults"
-        );
-
-
-    if (totalTeams) {
-        totalTeams.textContent =
-            teams.length;
-    }
-
-    if (totalPlayers) {
-        totalPlayers.textContent =
-            players.length;
-    }
-
-    if (totalGames) {
-        totalGames.textContent =
-            activeGames.length;
-    }
-
-    if (totalResults) {
-        totalResults.textContent =
-            finishedGames.length;
-    }
-
-}
-
-
-// =====================================================
-// VISITANTE - EQUIPAS
-// =====================================================
-
-function renderVisitorTeams() {
-
-    const container =
-        document.getElementById(
-            "visitorTeamsList"
-        );
-
-
-    if (!container) return;
-
-
-    if (teams.length === 0) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Ainda não existem equipas registadas.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        teams.map(team => {
-
-            const teamPlayers =
-                players.filter(
-                    player =>
-                        player.teamId ===
-                        team.id
-                );
-
-
-            const captain =
-                teamPlayers.find(
-                    player =>
-                        player.id ===
-                        team.captainId
-                );
-
-
-            return `
-
-                <div class="public-team-card">
-
-                    <div class="team-short">
-
-                        ${escapeHTML(
-                            team.short
-                        )}
-
-                    </div>
-
-                    <h3>
-                        ${escapeHTML(
-                            team.name
-                        )}
-                    </h3>
-
-                    <p>
-                        ${teamPlayers.length}
-                        jogadores
-                    </p>
-
-                    <div class="captain-public">
-
-                        🧢 Capitão:
-
-                        <strong>
-                            ${
-                                captain
-                                    ? escapeHTML(
-                                        captain.name
-                                    )
-                                    : "Ainda não definido"
-                            }
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }).join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - JOGADORES
-// =====================================================
-
-function renderVisitorPlayers() {
-
-    const container =
-        document.getElementById(
-            "visitorPlayersList"
-        );
-
-
-    if (!container) return;
-
-
-    if (players.length === 0) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Ainda não existem jogadores registados.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        players.map(player => {
-
-            const team =
-                teams.find(
-                    team =>
-                        team.id ===
-                        player.teamId
-                );
-
-
-            return `
-
-                <div class="player-public-card">
-
-                    <div class="player-number">
-
-                        ${player.number}
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            ${escapeHTML(
-                                player.name
-                            )}
-                        </h3>
-
-                        <p>
-
-                            ${escapeHTML(
-                                player.position
-                            )}
-
-                            •
-
-                            ${
-                                team
-                                    ? escapeHTML(
-                                        team.name
-                                    )
-                                    : "Sem equipa"
-                            }
-
-                            •
-
-                            ${player.goals || 0}
-                            golos
-
-                        </p>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }).join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - JOGOS
-// =====================================================
-
-function renderVisitorGames() {
-
-    const container =
-        document.getElementById(
-            "visitorGamesList"
-        );
-
-
-    if (!container) return;
-
-
-    const activeGames =
-        getActiveGames();
-
-
-    if (activeGames.length === 0) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Não existem jogos agendados ou em curso.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        activeGames.map(
-            renderPublicGame
-        ).join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - RESULTADOS
-// =====================================================
-
-function renderVisitorResults() {
-
-    const container =
-        document.getElementById(
-            "visitorResultsList"
-        );
-
-
-    if (!container) return;
-
-
-    const finishedGames =
-        getFinishedGames();
-
-
-    if (finishedGames.length === 0) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Ainda não existem resultados.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        finishedGames.map(
-            renderPublicGame
-        ).join("");
-
-}
-
-
-// =====================================================
-// CARTÃO PÚBLICO DE JOGO
-// =====================================================
-
-function renderPublicGame(
-    game
-) {
-
-    const home =
-        teams.find(
-            team =>
-                team.id ===
-                game.homeId
-        );
-
-
-    const away =
-        teams.find(
-            team =>
-                team.id ===
-                game.awayId
-        );
-
-
-    const finished =
-        game.status ===
-        "Terminado";
-
-
-    return `
-
-        <div class="public-game-card">
-
-            <div class="game-date-box">
-
-                <strong>
-                    ${formatShortDate(
-                        game.date
-                    )}
-                </strong>
-
-                <span>
-                    ${escapeHTML(
-                        game.time
-                    )}
-                </span>
-
-            </div>
-
-
-            <div class="game-teams">
-
-                <div class="game-team">
-
-                    ${
-                        escapeHTML(
-                            home
-                                ? home.name
-                                : "Equipa removida"
-                        )
-                    }
-
-                </div>
-
-
-                <div class="game-vs">
-
-                    ${
-                        finished
-                            ? `
-                                <span class="game-score">
-                                    ${game.homeScore}
-                                    :
-                                    ${game.awayScore}
-                                </span>
-                              `
-                            : "VS"
-                    }
-
-                </div>
-
-
-                <div class="game-team away">
-
-                    ${
-                        escapeHTML(
-                            away
-                                ? away.name
-                                : "Equipa removida"
-                        )
-                    }
-
-                </div>
-
-            </div>
-
-
-            <div class="game-meta">
-
-                📍
-                ${escapeHTML(
-                    game.field
-                )}
-
-                <br>
-
-                <span
-                    class="game-status ${
-                        finished
-                            ? "finished"
-                            : ""
-                    }"
-                >
-
-                    ${
-                        finished
-                            ? "Terminado"
-                            : escapeHTML(
-                                game.status
-                            )
-                    }
-
-                </span>
-
-            </div>
-
-        </div>
-
-    `;
-
-}
-
-
-// =====================================================
-// VISITANTE - PRÓXIMOS JOGOS
-// =====================================================
-
-function renderVisitorUpcomingGames() {
-
-    const container =
-        document.getElementById(
-            "visitorUpcomingGames"
-        );
-
-
-    if (!container) return;
-
-
-    const activeGames =
-        getActiveGames()
-            .slice(0, 3);
-
-
-    if (
-        activeGames.length ===
-        0
-    ) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Não existem próximos jogos.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        activeGames
-            .map(
-                renderPublicGame
-            )
-            .join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - ÚLTIMOS RESULTADOS
-// =====================================================
-
-function renderVisitorLatestResults() {
-
-    const container =
-        document.getElementById(
-            "visitorLatestResults"
-        );
-
-
-    if (!container) return;
-
-
-    const finishedGames =
-        getFinishedGames()
-            .slice(0, 3);
-
-
-    if (
-        finishedGames.length ===
-        0
-    ) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Ainda não existem resultados.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        finishedGames
-            .map(
-                renderPublicGame
-            )
-            .join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - CLASSIFICAÇÃO
-// =====================================================
-
-function renderVisitorStandings() {
-
-    const body =
-        document.getElementById(
-            "standingsBody"
-        );
-
-
-    if (!body) return;
-
-
-    const standings =
-        calculateStandings();
-
-
-    if (standings.length === 0) {
-
-        body.innerHTML = `
-            <tr>
-                <td colspan="10">
-                    Ainda não existem equipas.
-                </td>
-            </tr>
-        `;
-
-        return;
-
-    }
-
-
-    body.innerHTML =
-        standings.map(
-            (teamData, index) => {
-
-                const team =
-                    teams.find(
-                        team =>
-                            team.id ===
-                            teamData.teamId
-                    );
-
-
-                return `
-
-                    <tr>
-
-                        <td>
-                            ${index + 1}
-                        </td>
-
-                        <td>
-                            ${
-                                team
-                                    ? escapeHTML(
-                                        team.name
-                                    )
-                                    : "Equipa removida"
-                            }
-                        </td>
-
-                        <td>
-                            ${teamData.played}
-                        </td>
-
-                        <td>
-                            ${teamData.wins}
-                        </td>
-
-                        <td>
-                            ${teamData.draws}
-                        </td>
-
-                        <td>
-                            ${teamData.losses}
-                        </td>
-
-                        <td>
-                            ${teamData.goalsFor}
-                        </td>
-
-                        <td>
-                            ${teamData.goalsAgainst}
-                        </td>
-
-                        <td>
-                            ${teamData.goalDifference}
-                        </td>
-
-                        <td>
-                            <strong>
-                                ${teamData.points}
-                            </strong>
-                        </td>
-
-                    </tr>
-
-                `;
-
-            }
-        ).join("");
-
-}
-
-
-// =====================================================
-// VISITANTE - MARCADORES
-// =====================================================
-
-function renderVisitorScorers() {
-
-    const container =
-        document.getElementById(
-            "visitorScorersList"
-        );
-
-
-    if (!container) return;
-
-
-    const sortedPlayers =
-        [...players]
-            .sort(
-                (a, b) =>
-                    (b.goals || 0) -
-                    (a.goals || 0)
-            );
-
-
-    if (
-        sortedPlayers.length ===
-        0
-    ) {
-
-        container.innerHTML = `
-            <div class="empty-public">
-                Ainda não existem jogadores.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        sortedPlayers.map(
-            (player, index) => {
-
-                const team =
-                    teams.find(
-                        team =>
-                            team.id ===
-                            player.teamId
-                    );
-
-
-                return `
-
-                    <div class="scorer-card">
-
-                        <div class="scorer-position">
-                            #${index + 1}
-                        </div>
-
-                        <div>
-
-                            <strong>
-                                ${escapeHTML(
-                                    player.name
-                                )}
-                            </strong>
-
-                            <small>
-                                ${
-                                    team
-                                        ? escapeHTML(
-                                            team.name
-                                        )
-                                        : "Sem equipa"
-                                }
-                            </small>
-
-                        </div>
-
-                        <div class="scorer-goals">
-
-                            ${player.goals || 0}
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            }
-        ).join("");
-
-}
-
-
-// =====================================================
-// RENDER VISITANTE
-// =====================================================
-
-function renderVisitorAll() {
-
-    renderVisitorStats();
-
-    renderVisitorTeams();
-
-    renderVisitorPlayers();
-
-    renderVisitorGames();
-
-    renderVisitorResults();
-
-    renderVisitorStandings();
-
-    renderVisitorScorers();
-
-    renderVisitorUpcomingGames();
-
-    renderVisitorLatestResults();
-
-}
-
-
-// =====================================================
+// ========================================
 // FORMATAR DATA
-// =====================================================
+// ========================================
 
 function formatDate(date) {
 
     if (!date) return "";
 
-    const parts =
-        date.split("-");
-
-
-    if (parts.length !== 3) {
-        return date;
-    }
-
+    const parts = date.split("-");
 
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
 
 }
 
 
-function formatShortDate(date) {
-
-    if (!date) return "";
-
-    const parts =
-        date.split("-");
-
-
-    if (parts.length !== 3) {
-        return date;
-    }
-
-
-    return `${parts[2]}/${parts[1]}`;
-
-}
-
-
-// =====================================================
-// PROTEGER HTML
-// =====================================================
+// ========================================
+// PROTEGER TEXTO INSERIDO
+// ========================================
 
 function escapeHTML(value) {
 
     return String(value)
 
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
+        .replaceAll("&", "&amp;")
 
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
+        .replaceAll("<", "&lt;")
 
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
+        .replaceAll(">", "&gt;")
 
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
+        .replaceAll('"', "&quot;")
 
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+        .replaceAll("'", "&#039;");
 
 }
 
 
-// =====================================================
-// ATUALIZAR TUDO ADMIN
-// =====================================================
+// ========================================
+// MODO VISITANTE (CONSULTA)
+// ========================================
+const homePage = document.getElementById("homePage");
+const visitorPage = document.getElementById("visitorPage");
+const visitorModeBtn = document.getElementById("visitorModeBtn");
+const adminModeBtn = document.getElementById("adminModeBtn");
+const backHomeFromVisitor = document.getElementById("backHomeFromVisitor");
+const backHomeFromLogin = document.getElementById("backHomeFromLogin");
+
+function openVisitorMode() {
+    homePage?.classList.add("hidden");
+    loginPage?.classList.add("hidden");
+    adminPanel?.classList.add("hidden");
+    visitorPage?.classList.remove("hidden");
+    renderVisitor();
+}
+function returnHome() {
+    visitorPage?.classList.add("hidden");
+    loginPage?.classList.add("hidden");
+    adminPanel?.classList.add("hidden");
+    homePage?.classList.remove("hidden");
+}
+visitorModeBtn?.addEventListener("click", openVisitorMode);
+adminModeBtn?.addEventListener("click", () => { homePage?.classList.add("hidden"); loginPage?.classList.remove("hidden"); });
+backHomeFromVisitor?.addEventListener("click", returnHome);
+backHomeFromLogin?.addEventListener("click", returnHome);
+
+document.querySelectorAll("[data-visitor-page]").forEach(button => {
+    button.addEventListener("click", () => {
+        document.querySelectorAll(".visitor-content-page").forEach(p => p.classList.add("hidden"));
+        document.getElementById(button.dataset.visitorPage)?.classList.remove("hidden");
+        document.querySelectorAll("[data-visitor-page]").forEach(b => b.classList.toggle("active", b === button));
+    });
+});
+document.querySelectorAll("[data-visitor-open]").forEach(button => button.addEventListener("click", () => {
+    document.querySelector(`[data-visitor-page="${button.dataset.visitorOpen}"]`)?.click();
+}));
+
+function visitorGameCard(game) {
+    const home = teams.find(t => t.id === game.homeId); const away = teams.find(t => t.id === game.awayId);
+    const score = game.status === "Terminado" ? `${game.homeScore} : ${game.awayScore}` : "- : -";
+    return `<div class="list-item"><div><strong>${escapeHTML(home?.name || "Equipa removida")} ${score} ${escapeHTML(away?.name || "Equipa removida")}</strong><p>${formatDate(game.date)} • ${escapeHTML(game.time || "")} • ${escapeHTML(game.field || "A definir")}</p><p>${escapeHTML(game.status || "Agendado")}${game.group ? ` • Grupo ${escapeHTML(game.group)}` : ""}</p></div></div>`;
+}
+function renderVisitor() {
+    const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+    const upcoming = games.filter(g => g.status !== "Terminado").sort((a,b) => new Date(`${a.date}T${a.time}`)-new Date(`${b.date}T${b.time}`));
+    const finished = games.filter(g => g.status === "Terminado").sort((a,b) => new Date(`${b.date}T${b.time}`)-new Date(`${a.date}T${a.time}`));
+    const empty = '<p class="empty-message">Ainda não existem dados.</p>';
+    const putText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    putText("visitorTotalTeams", teams.length); putText("visitorTotalPlayers", players.length); putText("visitorTotalGames", upcoming.length); putText("visitorTotalResults", finished.length);
+    set("visitorTeamsList", teams.length ? teams.map(t => `<div class="list-item"><div><strong>${escapeHTML(t.name)}</strong><p>${escapeHTML(t.short || "")}${t.captainId ? ` • Capitão: ${escapeHTML(players.find(p=>p.id===t.captainId)?.name || "")}` : ""}</p></div></div>`).join("") : empty);
+    set("visitorPlayersList", players.length ? players.map(p => `<div class="list-item"><div><strong>${escapeHTML(p.name)}</strong><p>N.º ${escapeHTML(String(p.number))} • ${escapeHTML(p.position || "")} • ${escapeHTML(teams.find(t=>t.id===p.teamId)?.name || "Equipa removida")}</p></div></div>`).join("") : empty);
+    set("visitorGamesList", upcoming.length ? upcoming.map(visitorGameCard).join("") : empty);
+    set("visitorUpcomingGames", upcoming.slice(0,5).map(visitorGameCard).join("") || empty);
+    set("visitorResultsList", finished.length ? finished.map(visitorGameCard).join("") : empty);
+    set("visitorLatestResults", finished.slice(0,5).map(visitorGameCard).join("") || empty);
+    const totals = getPlayerGoalsFromFinishedGames();
+    const scorerRows = [...totals.entries()].map(([playerId, goals]) => ({player:players.find(p=>p.id===playerId), goals})).filter(x=>x.player).sort((a,b)=>b.goals-a.goals);
+    set("visitorScorersList", scorerRows.length ? scorerRows.map((x,i)=>`<div class="list-item"><div><strong>${i+1}. ${escapeHTML(x.player.name)}</strong><p>${escapeHTML(teams.find(t=>t.id===x.player.teamId)?.name || "")} • ${x.goals} golo(s)</p></div></div>`).join("") : empty);
+    const table = new Map(teams.map(t=>[t.id,{team:t,played:0,w:0,d:0,l:0,gm:0,gs:0,pts:0}]));
+    finished.forEach(g=>{ const h=table.get(g.homeId), a=table.get(g.awayId); if(!h||!a) return; h.played++; a.played++; h.gm+=Number(g.homeScore)||0; h.gs+=Number(g.awayScore)||0; a.gm+=Number(g.awayScore)||0; a.gs+=Number(g.homeScore)||0; if(g.homeScore>g.awayScore){h.w++;h.pts+=3;a.l++;} else if(g.homeScore<g.awayScore){a.w++;a.pts+=3;h.l++;} else {h.d++;a.d++;h.pts++;a.pts++;}});
+    const standings=[...table.values()].sort((a,b)=>b.pts-a.pts||(b.gm-b.gs)-(a.gm-a.gs)||b.gm-a.gm);
+    set("standingsBody", standings.map((x,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(x.team.name)}</td><td>${x.played}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gm}</td><td>${x.gs}</td><td>${x.gm-x.gs}</td><td>${x.pts}</td></tr>`).join("") || '<tr><td colspan="10">Sem classificação disponível.</td></tr>');
+}
+
+// ========================================
+// ATUALIZAR TUDO
+// ========================================
 
 function renderAll() {
-
-    cleanInvalidCaptains();
-
-    updateTeamSelects();
 
     updateStats();
 
@@ -3446,54 +1694,8 @@ function renderAll() {
 
     renderGames();
 
-    renderFinishedGames();
+    updateTeamSelects();
+    renderDrawChampionships();
+    renderVisitor();
 
 }
-
-
-// =====================================================
-// INICIALIZAÇÃO
-// =====================================================
-
-// Corrigir dados antigos caso existam
-// capitães inválidos no localStorage.
-
-cleanInvalidCaptains();
-
-
-// Se já estiver logado como administrador,
-// abrir diretamente o painel.
-
-if (
-    sessionStorage.getItem(
-        "adminLoggedIn"
-    ) === "true"
-) {
-
-    showAdminPanel();
-
-} else {
-
-    hideAllMainModes();
-
-    homePage.classList.remove(
-        "hidden"
-    );
-
-}
-
-
-// =====================================================
-// ATUALIZAÇÃO AUTOMÁTICA DA ÁREA PÚBLICA
-// =====================================================
-
-window.addEventListener(
-    "storage",
-    function () {
-
-        renderVisitorAll();
-
-        renderAll();
-
-    }
-);
