@@ -1,6 +1,6 @@
-/* =========================
-   CONFIGURAÇÕES GERAIS
-========================= */
+/* =====================================================
+   CONFIGURAÇÕES
+===================================================== */
 
 * {
     margin: 0;
@@ -9,19 +9,32 @@
 }
 
 :root {
-    --bg: #0b1120;
+    --bg: #080d18;
+    --bg-2: #0b1120;
+    --sidebar: #0e1729;
+
     --card: #111c30;
     --card-light: #17243b;
+
     --primary: #3b82f6;
     --primary-hover: #2563eb;
+
     --text: #f8fafc;
     --muted: #94a3b8;
+
     --border: #26354d;
+
     --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -42,30 +55,211 @@ button {
 }
 
 
-/* =========================
+/* =====================================================
+   PÁGINA INICIAL
+===================================================== */
+
+.home-page {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59, 130, 246, 0.18),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at bottom left,
+            rgba(37, 99, 235, 0.12),
+            transparent 35%
+        ),
+        var(--bg);
+}
+
+.home-container {
+    width: 100%;
+    max-width: 950px;
+    text-align: center;
+}
+
+.home-logo {
+    display: inline-flex;
+
+    font-size: 30px;
+    font-weight: 900;
+
+    margin-bottom: 25px;
+}
+
+.home-logo span {
+    color: var(--primary);
+}
+
+.home-kicker {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 4px;
+
+    margin-bottom: 15px;
+}
+
+.home-container h1 {
+    font-size: clamp(42px, 8vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -3px;
+}
+
+.home-container h1 span {
+    display: block;
+    color: var(--primary);
+}
+
+.home-description {
+    color: var(--muted);
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px;
+
+    margin-top: 55px;
+}
+
+.mode-card {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    text-align: left;
+
+    padding: 28px;
+
+    background: rgba(17, 28, 48, 0.9);
+
+    border: 1px solid var(--border);
+    border-radius: 18px;
+
+    color: white;
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        background 0.2s;
+}
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+    background: var(--card-light);
+}
+
+.mode-icon {
+    width: 55px;
+    height: 55px;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    background: #0b1527;
+    border-radius: 14px;
+
+    font-size: 25px;
+}
+
+.mode-card h2 {
+    font-size: 19px;
+    margin-bottom: 8px;
+}
+
+.mode-card p {
+    color: var(--muted);
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.mode-arrow {
+    margin-left: auto;
+    font-size: 25px;
+    color: var(--primary);
+}
+
+.home-footer {
+    margin-top: 45px;
+
+    color: #64748b;
+    font-size: 12px;
+}
+
+
+/* =====================================================
    LOGIN
-========================= */
+===================================================== */
 
 .login-page {
     min-height: 100vh;
+
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+
     padding: 20px;
+
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(59, 130, 246, 0.12),
+            transparent 35%
+        ),
+        var(--bg);
 }
 
 .login-card {
+    position: relative;
+
     width: 100%;
     max-width: 420px;
+
     background: var(--card);
+
     border: 1px solid var(--border);
+
     border-radius: 18px;
+
     padding: 35px;
+}
+
+.back-login-btn {
+    background: transparent;
+    border: none;
+
+    color: var(--muted);
+
+    margin-bottom: 25px;
+}
+
+.back-login-btn:hover {
+    color: white;
 }
 
 .logo {
     font-size: 28px;
     font-weight: bold;
+
     margin-bottom: 25px;
 }
 
@@ -86,7 +280,9 @@ button {
 .form-group {
     display: flex;
     flex-direction: column;
+
     gap: 9px;
+
     margin-bottom: 20px;
 }
 
@@ -98,11 +294,17 @@ button {
 .form-group input,
 .form-group select {
     width: 100%;
+
     padding: 13px;
+
     background: #0b1527;
+
     border: 1px solid var(--border);
+
     border-radius: 9px;
+
     color: white;
+
     outline: none;
 }
 
@@ -113,12 +315,17 @@ button {
 
 .btn-primary {
     width: 100%;
+
     padding: 14px;
+
     background: var(--primary);
+
     border: none;
     border-radius: 9px;
+
     color: white;
     font-weight: bold;
+
     transition: 0.2s;
 }
 
@@ -128,47 +335,706 @@ button {
 
 #loginMessage {
     margin-top: 15px;
+
     font-size: 14px;
+
     color: #f87171;
 }
 
 
-/* =========================
-   PAINEL
-========================= */
+/* =====================================================
+   VISITANTE
+===================================================== */
+
+.visitor-page {
+    min-height: 100vh;
+    background: var(--bg);
+}
+
+.visitor-topbar {
+    height: 72px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 30px;
+
+    background: var(--sidebar);
+
+    border-bottom: 1px solid var(--border);
+}
+
+.visitor-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.visitor-brand-logo {
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.visitor-brand-logo span {
+    color: var(--primary);
+}
+
+.visitor-brand strong {
+    display: block;
+}
+
+.visitor-brand small {
+    display: block;
+
+    color: var(--muted);
+
+    font-size: 10px;
+    margin-top: 3px;
+}
+
+.back-home-btn {
+    background: transparent;
+
+    color: var(--muted);
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    padding: 9px 13px;
+}
+
+.back-home-btn:hover {
+    color: white;
+    border-color: var(--primary);
+}
+
+.visitor-layout {
+    display: flex;
+    min-height: calc(100vh - 72px);
+}
+
+.visitor-sidebar {
+    width: 235px;
+
+    flex-shrink: 0;
+
+    padding: 25px 15px;
+
+    background: var(--sidebar);
+
+    border-right: 1px solid var(--border);
+}
+
+.visitor-menu-title {
+    color: #64748b;
+
+    font-size: 10px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    padding: 0 10px 12px;
+}
+
+.visitor-nav {
+    width: 100%;
+
+    text-align: left;
+
+    padding: 13px;
+
+    margin-bottom: 5px;
+
+    background: transparent;
+
+    color: var(--muted);
+
+    border: none;
+
+    border-radius: 8px;
+}
+
+.visitor-nav:hover,
+.visitor-nav.active {
+    background: var(--card-light);
+    color: white;
+}
+
+.visitor-nav.active {
+    border-left: 3px solid var(--primary);
+}
+
+.visitor-main {
+    flex: 1;
+    min-width: 0;
+
+    padding: 35px;
+}
+
+.visitor-content-page {
+    max-width: 1250px;
+    margin: 0 auto;
+}
+
+.visitor-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    min-height: 320px;
+
+    padding: 45px;
+
+    border-radius: 20px;
+
+    background:
+        radial-gradient(
+            circle at right,
+            rgba(59, 130, 246, 0.35),
+            transparent 35%
+        ),
+        linear-gradient(
+            120deg,
+            #172554,
+            #0f1b34
+        );
+
+    border: 1px solid #1e3a8a;
+}
+
+.visitor-hero small,
+.visitor-page-header small {
+    color: #60a5fa;
+
+    font-size: 11px;
+    font-weight: bold;
+
+    letter-spacing: 2px;
+}
+
+.visitor-hero h1 {
+    font-size: clamp(32px, 5vw, 55px);
+
+    line-height: 1.05;
+
+    margin: 15px 0;
+}
+
+.visitor-hero p {
+    color: #bfdbfe;
+
+    max-width: 500px;
+
+    line-height: 1.6;
+}
+
+.hero-ball {
+    font-size: 120px;
+
+    opacity: 0.9;
+
+    filter: drop-shadow(
+        0 20px 30px rgba(0,0,0,0.3)
+    );
+}
+
+.public-stats {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 15px;
+
+    margin: 25px 0;
+}
+
+.public-stat {
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 13px;
+
+    padding: 20px;
+}
+
+.public-stat span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.public-stat strong {
+    display: block;
+
+    font-size: 30px;
+
+    margin-top: 10px;
+}
+
+.visitor-two-columns {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px;
+}
+
+.public-card {
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 22px;
+
+    margin-bottom: 20px;
+}
+
+.card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.card-heading h2 {
+    font-size: 18px;
+}
+
+.text-button {
+    background: transparent;
+
+    border: none;
+
+    color: #60a5fa;
+
+    font-size: 13px;
+}
+
+.text-button:hover {
+    color: white;
+}
+
+.visitor-page-header {
+    margin-bottom: 25px;
+}
+
+.visitor-page-header h1 {
+    font-size: 35px;
+    margin: 10px 0;
+}
+
+.visitor-page-header p {
+    color: var(--muted);
+}
+
+
+/* =====================================================
+   CARTÕES PÚBLICOS
+===================================================== */
+
+.public-grid {
+    display: grid;
+
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(230px, 1fr)
+    );
+
+    gap: 16px;
+}
+
+.public-team-card {
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    transition: 0.2s;
+}
+
+.public-team-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+}
+
+.team-short {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    background: #172554;
+
+    border: 1px solid #1e40af;
+
+    color: #93c5fd;
+
+    border-radius: 12px;
+
+    font-weight: bold;
+
+    margin-bottom: 15px;
+}
+
+.public-team-card h3 {
+    margin-bottom: 8px;
+}
+
+.public-team-card p {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.captain-public {
+    margin-top: 15px;
+
+    padding-top: 15px;
+
+    border-top: 1px solid var(--border);
+
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.players-public-list {
+    display: grid;
+
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(260px, 1fr)
+    );
+
+    gap: 15px;
+}
+
+.player-public-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 13px;
+
+    padding: 17px;
+}
+
+.player-number {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    background: #172554;
+
+    border-radius: 50%;
+
+    color: #93c5fd;
+
+    font-weight: bold;
+}
+
+.player-public-card h3 {
+    font-size: 15px;
+}
+
+.player-public-card p {
+    color: var(--muted);
+
+    font-size: 12px;
+
+    margin-top: 5px;
+}
+
+
+/* =====================================================
+   JOGOS PÚBLICOS
+===================================================== */
+
+.games-public-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.public-game-card {
+    display: grid;
+
+    grid-template-columns: 100px 1fr auto;
+
+    align-items: center;
+
+    gap: 20px;
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 14px;
+
+    padding: 20px;
+}
+
+.game-date-box {
+    text-align: center;
+
+    background: #0b1527;
+
+    border-radius: 10px;
+
+    padding: 10px;
+}
+
+.game-date-box strong {
+    display: block;
+
+    font-size: 18px;
+
+    color: #93c5fd;
+}
+
+.game-date-box span {
+    color: var(--muted);
+
+    font-size: 11px;
+}
+
+.game-teams {
+    display: grid;
+
+    grid-template-columns: 1fr auto 1fr;
+
+    align-items: center;
+
+    gap: 15px;
+}
+
+.game-team {
+    font-weight: bold;
+}
+
+.game-team.away {
+    text-align: right;
+}
+
+.game-vs {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.game-meta {
+    text-align: right;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+.game-status {
+    display: inline-block;
+
+    padding: 5px 8px;
+
+    margin-top: 7px;
+
+    border-radius: 20px;
+
+    font-size: 10px;
+
+    color: #bfdbfe;
+
+    background: #172554;
+}
+
+.game-status.finished {
+    color: #bbf7d0;
+    background: #052e16;
+}
+
+.game-score {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.empty-public {
+    text-align: center;
+
+    padding: 40px 20px;
+
+    color: var(--muted);
+
+    background: var(--card);
+
+    border: 1px dashed var(--border);
+
+    border-radius: 13px;
+}
+
+
+/* =====================================================
+   TABELA
+===================================================== */
+
+.table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 750px;
+}
+
+th,
+td {
+    padding: 15px;
+
+    text-align: center;
+
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    color: var(--muted);
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+}
+
+td {
+    font-size: 14px;
+}
+
+td:nth-child(2) {
+    text-align: left;
+    font-weight: bold;
+}
+
+tbody tr:hover {
+    background: var(--card-light);
+}
+
+
+/* =====================================================
+   MARCADORES
+===================================================== */
+
+.scorers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.scorer-card {
+    display: grid;
+
+    grid-template-columns: 50px 1fr auto;
+
+    align-items: center;
+
+    gap: 15px;
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: 12px;
+
+    padding: 15px 18px;
+}
+
+.scorer-position {
+    color: var(--muted);
+    font-weight: bold;
+}
+
+.scorer-card strong {
+    display: block;
+}
+
+.scorer-card small {
+    display: block;
+
+    color: var(--muted);
+
+    margin-top: 4px;
+}
+
+.scorer-goals {
+    font-size: 22px;
+    font-weight: bold;
+
+    color: #60a5fa;
+}
+
+
+/* =====================================================
+   ADMIN
+===================================================== */
 
 .admin-panel {
     display: flex;
     min-height: 100vh;
 }
 
-
-/* =========================
-   MENU LATERAL
-========================= */
-
 .sidebar {
     width: 250px;
-    background: #0e1729;
+
+    background: var(--sidebar);
+
     border-right: 1px solid var(--border);
+
     padding: 25px 15px;
+
     display: flex;
     flex-direction: column;
+
     flex-shrink: 0;
 }
 
 .sidebar-logo {
     font-size: 19px;
     font-weight: bold;
+
     padding: 10px;
+
     margin-bottom: 35px;
 }
 
 .sidebar-logo span {
     display: block;
+
     color: var(--muted);
+
     font-size: 10px;
+
     margin-top: 7px;
+
     letter-spacing: 2px;
 }
 
@@ -180,11 +1046,17 @@ button {
 
 .nav-btn {
     text-align: left;
+
     padding: 14px;
+
     background: transparent;
+
     border: none;
+
     border-radius: 9px;
+
     color: var(--muted);
+
     transition: 0.2s;
 }
 
@@ -200,46 +1072,57 @@ button {
 
 .logout-btn {
     margin-top: auto;
+
     padding: 14px;
+
     background: #29151c;
+
     color: #f87171;
+
     border: none;
+
     border-radius: 9px;
 }
 
-
-/* =========================
-   CONTEÚDO
-========================= */
-
 .main-content {
     flex: 1;
+
     min-width: 0;
+
     padding: 30px;
 }
 
 .topbar {
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     gap: 20px;
+
     margin-bottom: 30px;
 }
 
 .topbar small {
     color: var(--muted);
+
     font-size: 11px;
+
     letter-spacing: 1px;
 }
 
 .topbar h1 {
     font-size: 30px;
+
     margin-top: 8px;
 }
 
 .admin-profile {
     display: flex;
+
     align-items: center;
+
     gap: 12px;
 }
 
@@ -256,110 +1139,127 @@ button {
 .avatar {
     width: 45px;
     height: 45px;
+
     border-radius: 50%;
+
     display: grid;
     place-items: center;
+
     background: var(--primary);
+
     font-weight: bold;
 }
-
-
-/* =========================
-   PÁGINAS
-========================= */
 
 .admin-page {
     display: block;
 }
 
 .welcome-card {
-    background: linear-gradient(120deg, #1d4ed8, #172554);
+    background:
+        linear-gradient(
+            120deg,
+            #1d4ed8,
+            #172554
+        );
+
     border-radius: 16px;
+
     padding: 30px;
+
     margin-bottom: 25px;
 }
 
 .welcome-card small {
     color: #bfdbfe;
+
     font-size: 12px;
+
     letter-spacing: 2px;
 }
 
 .welcome-card h2 {
     font-size: 27px;
+
     margin: 15px 0;
 }
 
 .welcome-card p {
     color: #dbeafe;
+
     line-height: 1.6;
 }
 
-
-/* =========================
-   ESTATÍSTICAS
-========================= */
-
 .stats-grid {
     display: grid;
+
     grid-template-columns: repeat(4, 1fr);
+
     gap: 18px;
+
     margin-bottom: 25px;
 }
 
 .stat-card {
     background: var(--card);
+
     border: 1px solid var(--border);
+
     padding: 22px;
+
     border-radius: 13px;
 }
 
 .stat-card span {
     color: var(--muted);
+
     font-size: 14px;
 }
 
 .stat-card strong {
     display: block;
+
     font-size: 32px;
+
     margin-top: 15px;
 }
 
-
-/* =========================
-   CARTÕES
-========================= */
-
 .content-card {
     background: var(--card);
+
     border: 1px solid var(--border);
+
     padding: 25px;
+
     border-radius: 14px;
+
     margin-bottom: 25px;
 }
 
 .content-card h2 {
     font-size: 19px;
+
     margin-bottom: 25px;
 }
 
-
-/* =========================
-   ACESSO RÁPIDO
-========================= */
-
 .quick-actions {
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: 15px;
 }
 
 .quick-actions button {
     background: var(--card-light);
+
     color: white;
+
     border: 1px solid var(--border);
+
     border-radius: 9px;
+
     padding: 17px;
+
     text-align: left;
 }
 
@@ -367,71 +1267,172 @@ button {
     border-color: var(--primary);
 }
 
-
-/* =========================
-   LISTAS
-========================= */
-
 .list-item {
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     gap: 15px;
+
     background: var(--card-light);
+
     border: 1px solid var(--border);
+
     padding: 16px;
+
     border-radius: 10px;
+
     margin-bottom: 12px;
 }
 
 .list-item p {
     color: var(--muted);
+
     font-size: 13px;
+
     margin-top: 6px;
 }
 
 .delete-btn {
     background: #3b1720;
+
     color: #f87171;
+
     border: none;
+
     border-radius: 7px;
+
     padding: 9px 12px;
 }
 
 .empty-message {
     color: var(--muted);
+
     text-align: center;
+
     padding: 25px 10px;
 }
 
-
-/* =========================
-   RESULTADOS
-========================= */
-
 .score-inputs {
     display: grid;
+
     grid-template-columns: 1fr 1fr;
+
     gap: 15px;
 }
 
+.section-note {
+    color: var(--muted);
 
-/* =========================
+    font-size: 13px;
+
+    margin-top: -15px;
+
+    margin-bottom: 20px;
+}
+
+.captain-select {
+    width: 100%;
+
+    padding: 12px;
+
+    margin-top: 10px;
+
+    background: #0b1527;
+
+    color: white;
+
+    border: 1px solid var(--border);
+
+    border-radius: 9px;
+}
+
+.captain-select:focus {
+    outline: none;
+
+    border-color: var(--primary);
+}
+
+.captain-warning {
+    color: #fbbf24;
+
+    font-size: 12px;
+
+    margin-top: 8px;
+}
+
+
+/* =====================================================
    RESPONSIVO
-========================= */
+===================================================== */
 
 @media (max-width: 1000px) {
 
-    .stats-grid {
+    .stats-grid,
+    .public-stats {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .sidebar {
+    .sidebar,
+    .visitor-sidebar {
         width: 210px;
     }
 
-    .main-content {
+    .main-content,
+    .visitor-main {
         padding: 22px;
+    }
+
+    .visitor-two-columns {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 800px) {
+
+    .mode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .visitor-layout {
+        flex-direction: column;
+    }
+
+    .visitor-sidebar {
+        width: 100%;
+
+        border-right: none;
+
+        border-bottom: 1px solid var(--border);
+
+        padding: 12px;
+    }
+
+    .visitor-sidebar {
+        display: grid;
+
+        grid-template-columns: repeat(3, 1fr);
+
+        gap: 5px;
+    }
+
+    .visitor-menu-title {
+        display: none;
+    }
+
+    .visitor-nav {
+        margin: 0;
+    }
+
+    .visitor-hero {
+        padding: 30px;
+    }
+
+    .hero-ball {
+        font-size: 75px;
     }
 
 }
@@ -444,6 +1445,7 @@ button {
 
     .sidebar {
         width: 100%;
+
         padding: 15px;
     }
 
@@ -453,11 +1455,13 @@ button {
 
     .sidebar nav {
         display: grid;
+
         grid-template-columns: repeat(2, 1fr);
     }
 
     .nav-btn {
         font-size: 13px;
+
         padding: 12px 8px;
     }
 
@@ -465,7 +1469,8 @@ button {
         margin-top: 15px;
     }
 
-    .main-content {
+    .main-content,
+    .visitor-main {
         padding: 18px;
     }
 
@@ -489,16 +1494,20 @@ button {
         font-size: 10px;
     }
 
-    .stats-grid {
+    .stats-grid,
+    .public-stats {
         grid-template-columns: 1fr 1fr;
+
         gap: 10px;
     }
 
-    .stat-card {
+    .stat-card,
+    .public-stat {
         padding: 16px;
     }
 
-    .stat-card strong {
+    .stat-card strong,
+    .public-stat strong {
         font-size: 25px;
     }
 
@@ -506,12 +1515,63 @@ button {
         grid-template-columns: 1fr;
     }
 
-    .content-card {
+    .content-card,
+    .public-card {
         padding: 18px;
     }
 
     .score-inputs {
         grid-template-columns: 1fr;
+    }
+
+    .public-game-card {
+        grid-template-columns: 70px 1fr;
+
+        gap: 12px;
+    }
+
+    .game-meta {
+        grid-column: 2;
+
+        text-align: left;
+    }
+
+    .game-teams {
+        gap: 8px;
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .visitor-topbar {
+        padding: 0 15px;
+    }
+
+    .visitor-brand strong {
+        font-size: 13px;
+    }
+
+    .visitor-hero {
+        min-height: 260px;
+
+        padding: 25px;
+    }
+
+    .visitor-hero h1 {
+        font-size: 32px;
+    }
+
+    .hero-ball {
+        display: none;
+    }
+
+    .visitor-sidebar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .visitor-page-header h1 {
+        font-size: 29px;
     }
 
 }
@@ -522,23 +1582,9 @@ button {
         display: none;
     }
 
-}
+    .stats-grid,
+    .public-stats {
+        grid-template-columns: 1fr;
+    }
 
-/* GESTÃO DE CAPITÃES */
-
-.captain-select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-
-    background: #0b1527;
-    color: white;
-
-    border: 1px solid var(--border);
-    border-radius: 9px;
-}
-
-.captain-select:focus {
-    outline: none;
-    border-color: var(--primary);
 }
