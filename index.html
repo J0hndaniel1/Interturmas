@@ -4,40 +4,529 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Interturmas 2026 | Administração</title>
+    <title>Interturmas 2026</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- ECRÃ DE LOGIN -->
+    <!-- =====================================================
+         PÁGINA INICIAL
+    ====================================================== -->
 
-    <section id="loginPage" class="login-page">
+    <section id="homePage" class="home-page">
+
+        <div class="home-container">
+
+            <div class="home-logo">
+                IT<span>26</span>
+            </div>
+
+            <p class="home-kicker">
+                CAMPEONATO ESCOLAR
+            </p>
+
+            <h1>
+                INTERTURMAS
+                <span>2026</span>
+            </h1>
+
+            <p class="home-description">
+                O campeonato da nossa escola.
+            </p>
+
+            <div class="mode-grid">
+
+                <button
+                    id="visitorModeBtn"
+                    class="mode-card visitor-mode"
+                >
+                    <div class="mode-icon">⚽</div>
+
+                    <div>
+                        <h2>Modo Visitante</h2>
+
+                        <p>
+                            Consulta equipas, jogadores,
+                            jogos, resultados e classificação.
+                        </p>
+                    </div>
+
+                    <span class="mode-arrow">→</span>
+                </button>
+
+
+                <button
+                    id="adminModeBtn"
+                    class="mode-card admin-mode"
+                >
+                    <div class="mode-icon">🔐</div>
+
+                    <div>
+                        <h2>Modo Administrador</h2>
+
+                        <p>
+                            Gere equipas, jogadores,
+                            jogos e resultados.
+                        </p>
+                    </div>
+
+                    <span class="mode-arrow">→</span>
+                </button>
+
+            </div>
+
+            <p class="home-footer">
+                Interturmas 2026 • Plataforma de gestão
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ÁREA DO VISITANTE
+    ====================================================== -->
+
+    <section id="visitorPage" class="visitor-page hidden">
+
+        <header class="visitor-topbar">
+
+            <div class="visitor-brand">
+                <div class="visitor-brand-logo">
+                    IT<span>26</span>
+                </div>
+
+                <div>
+                    <strong>INTERTURMAS</strong>
+                    <small>2026</small>
+                </div>
+            </div>
+
+
+            <button
+                id="backHomeFromVisitor"
+                class="back-home-btn"
+            >
+                ← Início
+            </button>
+
+        </header>
+
+
+        <div class="visitor-layout">
+
+            <aside class="visitor-sidebar">
+
+                <div class="visitor-menu-title">
+                    CAMPEONATO
+                </div>
+
+                <button
+                    class="visitor-nav active"
+                    data-visitor-page="visitorDashboard"
+                >
+                    🏠 Início
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorTeams"
+                >
+                    👥 Equipas
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorPlayers"
+                >
+                    ⚽ Jogadores
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorGames"
+                >
+                    📅 Jogos
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorResults"
+                >
+                    🏆 Resultados
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorStandings"
+                >
+                    📊 Classificação
+                </button>
+
+                <button
+                    class="visitor-nav"
+                    data-visitor-page="visitorScorers"
+                >
+                    👟 Marcadores
+                </button>
+
+            </aside>
+
+
+            <main class="visitor-main">
+
+                <!-- VISITANTE - DASHBOARD -->
+
+                <section
+                    id="visitorDashboard"
+                    class="visitor-content-page"
+                >
+
+                    <div class="visitor-hero">
+
+                        <div>
+
+                            <small>
+                                INTERTURMAS 2026
+                            </small>
+
+                            <h1>
+                                O campeonato
+                                <br>
+                                da nossa escola.
+                            </h1>
+
+                            <p>
+                                Acompanha os jogos,
+                                resultados, equipas e
+                                jogadores do campeonato.
+                            </p>
+
+                        </div>
+
+                        <div class="hero-ball">
+                            ⚽
+                        </div>
+
+                    </div>
+
+
+                    <div class="public-stats">
+
+                        <div class="public-stat">
+                            <span>Equipas</span>
+                            <strong id="visitorTotalTeams">0</strong>
+                        </div>
+
+                        <div class="public-stat">
+                            <span>Jogadores</span>
+                            <strong id="visitorTotalPlayers">0</strong>
+                        </div>
+
+                        <div class="public-stat">
+                            <span>Jogos</span>
+                            <strong id="visitorTotalGames">0</strong>
+                        </div>
+
+                        <div class="public-stat">
+                            <span>Resultados</span>
+                            <strong id="visitorTotalResults">0</strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="visitor-two-columns">
+
+                        <div class="public-card">
+
+                            <div class="card-heading">
+                                <h2>Próximos jogos</h2>
+
+                                <button
+                                    class="text-button"
+                                    data-visitor-open="visitorGames"
+                                >
+                                    Ver todos →
+                                </button>
+                            </div>
+
+                            <div id="visitorUpcomingGames"></div>
+
+                        </div>
+
+
+                        <div class="public-card">
+
+                            <div class="card-heading">
+                                <h2>Últimos resultados</h2>
+
+                                <button
+                                    class="text-button"
+                                    data-visitor-open="visitorResults"
+                                >
+                                    Ver todos →
+                                </button>
+                            </div>
+
+                            <div id="visitorLatestResults"></div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- EQUIPAS -->
+
+                <section
+                    id="visitorTeams"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>CAMPEONATO</small>
+                            <h1>Equipas</h1>
+                            <p>
+                                Equipas inscritas no Interturmas 2026.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="visitorTeamsList"
+                        class="public-grid"
+                    ></div>
+
+                </section>
+
+
+                <!-- JOGADORES -->
+
+                <section
+                    id="visitorPlayers"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>PLANTÉIS</small>
+                            <h1>Jogadores</h1>
+                            <p>
+                                Jogadores inscritos no campeonato.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="visitorPlayersList"
+                        class="players-public-list"
+                    ></div>
+
+                </section>
+
+
+                <!-- JOGOS -->
+
+                <section
+                    id="visitorGames"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>CALENDÁRIO</small>
+                            <h1>Jogos</h1>
+                            <p>
+                                Jogos agendados e em curso.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="visitorGamesList"
+                        class="games-public-list"
+                    ></div>
+
+                </section>
+
+
+                <!-- RESULTADOS -->
+
+                <section
+                    id="visitorResults"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>RESULTADOS</small>
+                            <h1>Resultados</h1>
+                            <p>
+                                Jogos que já terminaram.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="visitorResultsList"
+                        class="games-public-list"
+                    ></div>
+
+                </section>
+
+
+                <!-- CLASSIFICAÇÃO -->
+
+                <section
+                    id="visitorStandings"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>TABELA</small>
+                            <h1>Classificação</h1>
+                            <p>
+                                Classificação com base nos resultados registados.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="public-card table-card">
+
+                        <div class="table-wrapper">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Equipa</th>
+                                        <th>J</th>
+                                        <th>V</th>
+                                        <th>E</th>
+                                        <th>D</th>
+                                        <th>GM</th>
+                                        <th>GS</th>
+                                        <th>DG</th>
+                                        <th>Pts</th>
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="standingsBody"></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- MARCADORES -->
+
+                <section
+                    id="visitorScorers"
+                    class="visitor-content-page hidden"
+                >
+
+                    <div class="visitor-page-header">
+
+                        <div>
+                            <small>ESTATÍSTICAS</small>
+                            <h1>Melhores marcadores</h1>
+                            <p>
+                                Jogadores com mais golos registados.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div
+                        id="visitorScorersList"
+                        class="scorers-list"
+                    ></div>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         LOGIN ADMINISTRADOR
+    ====================================================== -->
+
+    <section
+        id="loginPage"
+        class="login-page hidden"
+    >
 
         <div class="login-card">
 
-            <div class="logo">IT<span>26</span></div>
+            <button
+                id="backHomeFromLogin"
+                class="back-login-btn"
+            >
+                ← Voltar
+            </button>
+
+            <div class="logo">
+                IT<span>26</span>
+            </div>
 
             <h1>Interturmas</h1>
 
-            <p class="subtitle">Painel de Administração</p>
+            <p class="subtitle">
+                Painel de Administração
+            </p>
+
 
             <form id="loginForm">
 
                 <div class="form-group">
-                    <label for="email">E-mail</label>
+
+                    <label for="email">
+                        E-mail
+                    </label>
 
                     <input
                         type="email"
                         id="email"
-                        placeholder="email"
+                        placeholder="E-mail"
                         required
                     >
+
                 </div>
 
+
                 <div class="form-group">
-                    <label for="password">Palavra-passe</label>
+
+                    <label for="password">
+                        Palavra-passe
+                    </label>
 
                     <input
                         type="password"
@@ -45,9 +534,14 @@
                         placeholder="Introduz a palavra-passe"
                         required
                     >
+
                 </div>
 
-                <button type="submit" class="btn-primary">
+
+                <button
+                    type="submit"
+                    class="btn-primary"
+                >
                     Entrar no painel
                 </button>
 
@@ -60,11 +554,14 @@
     </section>
 
 
-    <!-- PAINEL DE ADMINISTRAÇÃO -->
+    <!-- =====================================================
+         PAINEL ADMINISTRADOR
+    ====================================================== -->
 
-    <div id="adminPanel" class="admin-panel hidden">
-
-        <!-- MENU LATERAL -->
+    <div
+        id="adminPanel"
+        class="admin-panel hidden"
+    >
 
         <aside class="sidebar">
 
@@ -73,59 +570,97 @@
                 <span>ADMINISTRAÇÃO</span>
             </div>
 
+
             <nav>
 
-                <button class="nav-btn active" data-page="dashboard">
+                <button
+                    class="nav-btn active"
+                    data-page="dashboard"
+                >
                     📊 Dashboard
                 </button>
 
-                <button class="nav-btn" data-page="campeonatos">
+                <button
+                    class="nav-btn"
+                    data-page="campeonatos"
+                >
                     🏆 Campeonatos
                 </button>
 
-                <button class="nav-btn" data-page="equipas">
+                <button
+                    class="nav-btn"
+                    data-page="equipas"
+                >
                     👥 Equipas
                 </button>
 
-                <button class="nav-btn" data-page="jogadores">
+                <button
+                    class="nav-btn"
+                    data-page="jogadores"
+                >
                     ⚽ Jogadores
                 </button>
 
-                <button class="nav-btn" data-page="jogos">
+                <button
+                    class="nav-btn"
+                    data-page="jogos"
+                >
                     📅 Jogos
                 </button>
 
-                <button class="nav-btn" data-page="resultados">
+                <button
+                    class="nav-btn"
+                    data-page="resultados"
+                >
                     📝 Resultados
                 </button>
 
             </nav>
 
-            <button id="logoutBtn" class="logout-btn">
+
+            <button
+                id="logoutBtn"
+                class="logout-btn"
+            >
                 🚪 Terminar sessão
             </button>
 
         </aside>
 
 
-        <!-- CONTEÚDO PRINCIPAL -->
-
         <main class="main-content">
 
             <header class="topbar">
 
                 <div>
-                    <small>PAINEL DE CONTROLO</small>
-                    <h1 id="pageTitle">Dashboard</h1>
+
+                    <small>
+                        PAINEL DE CONTROLO
+                    </small>
+
+                    <h1 id="pageTitle">
+                        Dashboard
+                    </h1>
+
                 </div>
 
+
                 <div class="admin-profile">
-                    <div class="avatar">A</div>
+
+                    <div class="avatar">
+                        A
+                    </div>
 
                     <div>
-                        <strong>Administrador</strong>
-                        <small>Gestão do campeonato</small>
+                        <strong>
+                            Administrador
+                        </strong>
+
+                        <small>
+                            Gestão do campeonato
+                        </small>
                     </div>
+
                 </div>
 
             </header>
@@ -133,19 +668,28 @@
 
             <!-- DASHBOARD -->
 
-            <section id="dashboard" class="admin-page">
+            <section
+                id="dashboard"
+                class="admin-page"
+            >
 
                 <div class="welcome-card">
 
                     <div>
-                        <small>INTERTURMAS 2026</small>
 
-                        <h2>Bem-vindo ao painel!</h2>
+                        <small>
+                            INTERTURMAS 2026
+                        </small>
+
+                        <h2>
+                            Bem-vindo ao painel!
+                        </h2>
 
                         <p>
                             Gere o campeonato, as equipas,
                             os jogadores e os jogos.
                         </p>
+
                     </div>
 
                 </div>
@@ -178,7 +722,9 @@
 
                 <div class="content-card">
 
-                    <h2>Acesso rápido</h2>
+                    <h2>
+                        Acesso rápido
+                    </h2>
 
                     <div class="quick-actions">
 
@@ -207,15 +753,21 @@
 
             <!-- CAMPEONATOS -->
 
-            <section id="campeonatos" class="admin-page hidden">
+            <section
+                id="campeonatos"
+                class="admin-page hidden"
+            >
 
                 <div class="content-card">
 
-                    <h2>Criar campeonato</h2>
+                    <h2>
+                        Criar campeonato
+                    </h2>
 
                     <form id="championshipForm">
 
                         <div class="form-group">
+
                             <label for="championshipName">
                                 Nome do campeonato
                             </label>
@@ -226,10 +778,15 @@
                                 placeholder="Ex: Interturmas 2026"
                                 required
                             >
+
                         </div>
 
+
                         <div class="form-group">
-                            <label for="championshipYear">Ano</label>
+
+                            <label for="championshipYear">
+                                Ano
+                            </label>
 
                             <input
                                 type="number"
@@ -239,14 +796,20 @@
                                 max="2100"
                                 required
                             >
+
                         </div>
 
+
                         <div class="form-group">
+
                             <label for="championshipFormat">
                                 Formato
                             </label>
 
-                            <select id="championshipFormat" required>
+                            <select
+                                id="championshipFormat"
+                                required
+                            >
 
                                 <option value="">
                                     Selecionar formato
@@ -261,9 +824,14 @@
                                 </option>
 
                             </select>
+
                         </div>
 
-                        <button class="btn-primary" type="submit">
+
+                        <button
+                            class="btn-primary"
+                            type="submit"
+                        >
                             Criar campeonato
                         </button>
 
@@ -274,7 +842,9 @@
 
                 <div class="content-card">
 
-                    <h2>Campeonatos registados</h2>
+                    <h2>
+                        Campeonatos registados
+                    </h2>
 
                     <div id="championshipsList"></div>
 
@@ -285,16 +855,24 @@
 
             <!-- EQUIPAS -->
 
-            <section id="equipas" class="admin-page hidden">
+            <section
+                id="equipas"
+                class="admin-page hidden"
+            >
 
                 <div class="content-card">
 
-                    <h2>Cadastrar equipa</h2>
+                    <h2>
+                        Cadastrar equipa
+                    </h2>
 
                     <form id="teamForm">
 
                         <div class="form-group">
-                            <label for="teamName">Nome da equipa</label>
+
+                            <label for="teamName">
+                                Nome da equipa
+                            </label>
 
                             <input
                                 type="text"
@@ -302,10 +880,15 @@
                                 placeholder="Ex: 10.º A"
                                 required
                             >
+
                         </div>
 
+
                         <div class="form-group">
-                            <label for="teamShort">Sigla</label>
+
+                            <label for="teamShort">
+                                Sigla
+                            </label>
 
                             <input
                                 type="text"
@@ -314,9 +897,14 @@
                                 maxlength="8"
                                 required
                             >
+
                         </div>
 
-                        <button class="btn-primary" type="submit">
+
+                        <button
+                            class="btn-primary"
+                            type="submit"
+                        >
                             Cadastrar equipa
                         </button>
 
@@ -327,7 +915,9 @@
 
                 <div class="content-card">
 
-                    <h2>Equipas registadas</h2>
+                    <h2>
+                        Equipas registadas
+                    </h2>
 
                     <div id="teamsList"></div>
 
@@ -338,16 +928,24 @@
 
             <!-- JOGADORES -->
 
-            <section id="jogadores" class="admin-page hidden">
+            <section
+                id="jogadores"
+                class="admin-page hidden"
+            >
 
                 <div class="content-card">
 
-                    <h2>Cadastrar jogador</h2>
+                    <h2>
+                        Cadastrar jogador
+                    </h2>
 
                     <form id="playerForm">
 
                         <div class="form-group">
-                            <label for="playerName">Nome completo</label>
+
+                            <label for="playerName">
+                                Nome completo
+                            </label>
 
                             <input
                                 type="text"
@@ -355,9 +953,12 @@
                                 placeholder="Nome do jogador"
                                 required
                             >
+
                         </div>
 
+
                         <div class="form-group">
+
                             <label for="playerNumber">
                                 Número da camisola
                             </label>
@@ -369,12 +970,20 @@
                                 max="99"
                                 required
                             >
+
                         </div>
 
-                        <div class="form-group">
-                            <label for="playerPosition">Posição</label>
 
-                            <select id="playerPosition" required>
+                        <div class="form-group">
+
+                            <label for="playerPosition">
+                                Posição
+                            </label>
+
+                            <select
+                                id="playerPosition"
+                                required
+                            >
 
                                 <option value="">
                                     Selecionar posição
@@ -384,28 +993,47 @@
                                     Guarda-redes
                                 </option>
 
-                                <option value="Defesa">Defesa</option>
+                                <option value="Defesa">
+                                    Defesa
+                                </option>
 
-                                <option value="Médio">Médio</option>
+                                <option value="Médio">
+                                    Médio
+                                </option>
 
                                 <option value="Avançado">
                                     Avançado
                                 </option>
 
                             </select>
+
                         </div>
 
-                        <div class="form-group">
-                            <label for="playerTeam">Equipa</label>
 
-                            <select id="playerTeam" required>
+                        <div class="form-group">
+
+                            <label for="playerTeam">
+                                Equipa
+                            </label>
+
+                            <select
+                                id="playerTeam"
+                                required
+                            >
+
                                 <option value="">
                                     Selecionar equipa
                                 </option>
+
                             </select>
+
                         </div>
 
-                        <button class="btn-primary" type="submit">
+
+                        <button
+                            class="btn-primary"
+                            type="submit"
+                        >
                             Cadastrar jogador
                         </button>
 
@@ -416,7 +1044,9 @@
 
                 <div class="content-card">
 
-                    <h2>Jogadores registados</h2>
+                    <h2>
+                        Jogadores registados
+                    </h2>
 
                     <div id="playersList"></div>
 
@@ -427,50 +1057,94 @@
 
             <!-- JOGOS -->
 
-            <section id="jogos" class="admin-page hidden">
+            <section
+                id="jogos"
+                class="admin-page hidden"
+            >
 
                 <div class="content-card">
 
-                    <h2>Agendar jogo</h2>
+                    <h2>
+                        Agendar jogo
+                    </h2>
 
                     <form id="gameForm">
 
                         <div class="form-group">
-                            <label for="gameHome">Equipa da casa</label>
 
-                            <select id="gameHome" required>
+                            <label for="gameHome">
+                                Equipa da casa
+                            </label>
+
+                            <select
+                                id="gameHome"
+                                required
+                            >
+
                                 <option value="">
                                     Selecionar equipa
                                 </option>
+
                             </select>
+
                         </div>
 
+
                         <div class="form-group">
+
                             <label for="gameAway">
                                 Equipa visitante
                             </label>
 
-                            <select id="gameAway" required>
+                            <select
+                                id="gameAway"
+                                required
+                            >
+
                                 <option value="">
                                     Selecionar equipa
                                 </option>
+
                             </select>
+
                         </div>
 
-                        <div class="form-group">
-                            <label for="gameDate">Data</label>
 
-                            <input type="date" id="gameDate" required>
+                        <div class="form-group">
+
+                            <label for="gameDate">
+                                Data
+                            </label>
+
+                            <input
+                                type="date"
+                                id="gameDate"
+                                required
+                            >
+
                         </div>
 
-                        <div class="form-group">
-                            <label for="gameTime">Hora</label>
 
-                            <input type="time" id="gameTime" required>
+                        <div class="form-group">
+
+                            <label for="gameTime">
+                                Hora
+                            </label>
+
+                            <input
+                                type="time"
+                                id="gameTime"
+                                required
+                            >
+
                         </div>
 
+
                         <div class="form-group">
-                            <label for="gameField">Campo</label>
+
+                            <label for="gameField">
+                                Campo
+                            </label>
 
                             <input
                                 type="text"
@@ -478,9 +1152,14 @@
                                 placeholder="Campo principal"
                                 required
                             >
+
                         </div>
 
-                        <button class="btn-primary" type="submit">
+
+                        <button
+                            class="btn-primary"
+                            type="submit"
+                        >
                             Agendar jogo
                         </button>
 
@@ -491,7 +1170,14 @@
 
                 <div class="content-card">
 
-                    <h2>Jogos agendados</h2>
+                    <h2>
+                        Jogos correntes
+                    </h2>
+
+                    <p class="section-note">
+                        Jogos agendados ou em curso.
+                        Jogos terminados aparecem em Resultados.
+                    </p>
 
                     <div id="gamesList"></div>
 
@@ -502,27 +1188,43 @@
 
             <!-- RESULTADOS -->
 
-            <section id="resultados" class="admin-page hidden">
+            <section
+                id="resultados"
+                class="admin-page hidden"
+            >
 
                 <div class="content-card">
 
-                    <h2>Registar resultado</h2>
+                    <h2>
+                        Registar resultado
+                    </h2>
 
                     <form id="resultForm">
 
                         <div class="form-group">
-                            <label for="resultGame">Jogo</label>
 
-                            <select id="resultGame" required>
+                            <label for="resultGame">
+                                Jogo
+                            </label>
+
+                            <select
+                                id="resultGame"
+                                required
+                            >
+
                                 <option value="">
                                     Selecionar jogo
                                 </option>
+
                             </select>
+
                         </div>
+
 
                         <div class="score-inputs">
 
                             <div class="form-group">
+
                                 <label for="homeScore">
                                     Golos da equipa da casa
                                 </label>
@@ -533,9 +1235,12 @@
                                     min="0"
                                     required
                                 >
+
                             </div>
 
+
                             <div class="form-group">
+
                                 <label for="awayScore">
                                     Golos da equipa visitante
                                 </label>
@@ -546,15 +1251,31 @@
                                     min="0"
                                     required
                                 >
+
                             </div>
 
                         </div>
 
-                        <button class="btn-primary" type="submit">
+
+                        <button
+                            class="btn-primary"
+                            type="submit"
+                        >
                             Guardar resultado
                         </button>
 
                     </form>
+
+                </div>
+
+
+                <div class="content-card">
+
+                    <h2>
+                        Jogos terminados
+                    </h2>
+
+                    <div id="finishedGamesList"></div>
 
                 </div>
 
