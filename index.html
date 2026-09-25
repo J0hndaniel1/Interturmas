@@ -849,6 +849,16 @@
 
                     <div id="championshipsList"></div>
 
+                    <div class="form-group" style="margin-top:18px">
+                        <label for="drawChampionship">Campeonato para organizar</label>
+                        <select id="drawChampionship"><option value="">Selecionar campeonato</option></select>
+                    </div>
+                    <div class="button-row" style="display:flex;gap:10px;flex-wrap:wrap">
+                        <button type="button" class="btn-primary" id="drawGroupsBtn">Sortear Grupos</button>
+                        <button type="button" class="btn-primary" id="generateGamesBtn">Gerar Jogos</button>
+                    </div>
+                    <div id="groupsPreview" style="margin-top:16px"></div>
+
                 </div>
 
             </section>
@@ -1257,6 +1267,15 @@
 
                         </div>
 
+
+                        <div class="form-group">
+                            <label for="homeScorers">Marcadores da equipa da casa (formato: Nome=Golos, separados por vírgulas)</label>
+                            <input type="text" id="homeScorers" placeholder="Ex.: João=2, Pedro=1">
+                        </div>
+                        <div class="form-group">
+                            <label for="awayScorers">Marcadores da equipa visitante (formato: Nome=Golos, separados por vírgulas)</label>
+                            <input type="text" id="awayScorers" placeholder="Ex.: Carlos=1">
+                        </div>
 
                         <button
                             class="btn-primary"
