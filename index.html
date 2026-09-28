@@ -428,6 +428,7 @@
                                         <th>GS</th>
                                         <th>DG</th>
                                         <th>Pts</th>
+                                        <th>Estado</th>
                                     </tr>
 
                                 </thead>
@@ -438,6 +439,13 @@
 
                         </div>
 
+                    </div>
+
+                    <div class="public-card table-card">
+                        <div class="card-heading">
+                            <h2>Chave do mata-mata</h2>
+                        </div>
+                        <div id="visitorBracket" class="knockout-bracket"></div>
                     </div>
 
                 </section>
@@ -616,6 +624,13 @@
                     📝 Resultados
                 </button>
 
+                <button
+                    class="nav-btn"
+                    data-page="classificacaoAdmin"
+                >
+                    📊 Classificação
+                </button>
+
             </nav>
 
 
@@ -730,7 +745,7 @@
                     <div class="quick-actions">
 
                         <button data-open="campeonatos">
-                            + Criar campeonato
+                            Gerir épocas
                         </button>
 
                         <button data-open="equipas">
@@ -761,82 +776,10 @@
 
                 <div class="content-card">
 
-                    <h2>
-                        Criar campeonato
-                    </h2>
-
-                    <form id="championshipForm">
-
-                        <div class="form-group">
-
-                            <label for="championshipName">
-                                Nome do campeonato
-                            </label>
-
-                            <input
-                                type="text"
-                                id="championshipName"
-                                placeholder="Ex: Interturmas 2026"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="championshipYear">
-                                Ano
-                            </label>
-
-                            <input
-                                type="number"
-                                id="championshipYear"
-                                value="2026"
-                                min="2020"
-                                max="2100"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="championshipFormat">
-                                Formato
-                            </label>
-
-                            <select
-                                id="championshipFormat"
-                                required
-                            >
-
-                                <option value="">
-                                    Selecionar formato
-                                </option>
-
-                                <option value="knockout">
-                                    Mata-mata
-                                </option>
-
-                                <option value="groups_knockout">
-                                    Grupos + Mata-mata
-                                </option>
-
-                            </select>
-
-                        </div>
-
-
-                        <button
-                            class="btn-primary"
-                            type="submit"
-                        >
-                            Criar campeonato
-                        </button>
-
-                    </form>
+                    <h2>Época atual</h2>
+                    <p class="section-note" id="seasonStatusNote">A época ativa fica disponível para gestão.</p>
+                    <button type="button" class="btn-primary" id="startSeasonBtn">Iniciar época</button>
+                    <button type="button" class="btn-secondary" id="endSeasonBtn">Terminar e arquivar época</button>
 
                 </div>
 
@@ -850,17 +793,38 @@
                     <div id="championshipsList"></div>
 
                     <div class="form-group" style="margin-top:18px">
-                        <label for="drawChampionship">Campeonato para organizar</label>
+                        <label for="drawChampionship">Época ativa</label>
                         <select id="drawChampionship"><option value="">Selecionar campeonato</option></select>
                     </div>
+                    <div class="form-group">
+                        <label for="qualificationPoints">Pontos para qualificação automática</label>
+                        <input type="number" id="qualificationPoints" min="1" value="9">
+                    </div>
+                    <div class="form-group">
+                        <label for="winPoints">Pontos por vitória</label>
+                        <input type="number" id="winPoints" min="1" value="3">
+                    </div>
                     <div class="button-row" style="display:flex;gap:10px;flex-wrap:wrap">
-                        <button type="button" class="btn-primary" id="drawGroupsBtn">Sortear Grupos</button>
-                        <button type="button" class="btn-primary" id="generateGamesBtn">Gerar Jogos</button>
+                        <button type="button" class="btn-primary" id="startGroupStageBtn">Gerar jogos da liga</button>
+                        <button type="button" class="btn-secondary" id="startKnockoutBtn">Gerar mata-mata</button>
                     </div>
                     <div id="groupsPreview" style="margin-top:16px"></div>
 
                 </div>
 
+            </section>
+
+            <section id="classificacaoAdmin" class="admin-page hidden">
+                <div class="content-card">
+                    <h2>Classificação da época ativa</h2>
+                    <p class="section-note" id="adminQualificationNote"></p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead><tr><th>#</th><th>Equipa</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GM</th><th>GS</th><th>DG</th><th>Pts</th><th>Estado</th></tr></thead>
+                            <tbody id="adminStandingsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
 
@@ -1265,6 +1229,17 @@
 
                             </div>
 
+                        </div>
+
+                        <div class="score-inputs hidden" id="knockoutPenaltyInputs">
+                            <div class="form-group">
+                                <label for="homePenaltyScore">Penáltis da equipa da casa</label>
+                                <input type="number" id="homePenaltyScore" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="awayPenaltyScore">Penáltis da equipa visitante</label>
+                                <input type="number" id="awayPenaltyScore" min="0">
+                            </div>
                         </div>
 
 
